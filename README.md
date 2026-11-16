@@ -2,7 +2,7 @@
 
 A [Claude skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that cleans, interprets, and localizes noisy Tagalog/Filipino speech transcripts. It's built for dubbing and natural-sounding playback.
 
-> **Status:** 🚧 Early initialization. The first draft of `SKILL.md` exists, but it hasn't been tested yet.
+> **Status:** 🚧 Early development. SKILL.md, references and examples are drafted; the skill has not been evaluated yet.
 
 ## What It Does
 
@@ -17,24 +17,51 @@ English-biased speech recognition (ASR) tends to mangle Tagalog and Taglish. Thi
 ```
 .
 ├── README.md
+├── LICENSE
 └── filipino-asr-analyzer/
-    └── SKILL.md          # Skill entry point (frontmatter + instructions)
+    ├── SKILL.md                      # Skill entry point (frontmatter + instructions)
+    ├── references/
+    │   ├── asr-hallucinations.md     # English-ASR mishearings of Tagalog
+    │   ├── slang-glossary.md         # Modern slang and reversed words
+    │   └── register.md               # Deep → modern Tagalog, contractions
+    └── examples/
+        └── sample-01.md              # Before/after analyses
 ```
+
+## Register
+
+The skill leans on **modern conversational Tagalog** (Manila-style Taglish). It still recognizes **deep Tagalog** (*malalim na Tagalog*) and converts it to modern equivalents, unless you ask it to keep the formal register.
 
 ## Installation
 
-_Coming soon._
+**Claude Code:** copy the skill folder into your personal skills directory:
+
+```bash
+cp -r filipino-asr-analyzer ~/.claude/skills/
+```
+
+**Claude.ai:** zip the `filipino-asr-analyzer/` folder and upload it under **Settings → Capabilities → Skills**.
 
 ## Usage
 
-_Coming soon._
+Paste a raw transcript or ask for a dubbing line. Claude loads the skill automatically when the request matches:
+
+```
+Clean up this ASR transcript: "pa ray add toe con a nah ba? goose toe co sana mag drive tie yo mamaya"
+```
+
+```
+Translate this into natural Taglish for dubbing: "Dude, are you here yet?"
+```
+
+See [`examples/sample-01.md`](filipino-asr-analyzer/examples/sample-01.md) for expected output.
 
 ## Roadmap
 
 - [x] Project initialization
 - [x] Draft `SKILL.md`
-- [ ] Reference files (ASR hallucination patterns, slang glossary, contractions)
-- [ ] Example transcripts with expected output
+- [x] Reference files (ASR hallucination patterns, slang glossary, register and contractions)
+- [x] Example transcripts with expected output
 - [ ] Testing and evaluation
 - [ ] First release
 
@@ -45,4 +72,4 @@ _Coming soon._
 
 ## License
 
-_To be decided._
+[MIT](LICENSE)
