@@ -98,5 +98,5 @@ The hosts ask the boy what he wants to be. He says "a soldier", so they make him
 
 ## Fixes
 - d95e9dd: transcriber stops the repetition loop and keeps short cues.
-- _next commit_: added verified mishearings (*Ayos ay ala* → *Ah, kaya pala*; *Sarate/Shoot* → *Attention*) and the shouted-command guidance to `asr-hallucinations.md` and SKILL.md Step 1.
-- _next commit_: added *Bulihin* → *Huhulihin*, the collapsed-reduplication pattern, and the "closest sound match, not theme" rule (`asr-hallucinations.md` and SKILL.md Gotchas).
+- e7139e7: added verified mishearings (*Ayos ay ala* → *Ah, kaya pala*; *Sarate/Shoot* → *Attention*) and the shouted-command guidance to `asr-hallucinations.md` and SKILL.md Step 1.
+- e7139e7: added *Bulihin* → *Huhulihin*, the collapsed-reduplication pattern, and the "closest sound match, not theme" rule (`asr-hallucinations.md` and SKILL.md Gotchas).
