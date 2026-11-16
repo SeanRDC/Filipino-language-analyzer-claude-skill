@@ -88,12 +88,12 @@ The repetition loop is gone. 11 cues instead of 9, and no duplicated lines.
 The hosts ask the boy what he wants to be. He says "a soldier", so they make him perform drill commands (salute, left face) and praise him (*Ayan, ang ganda!*). Then they ask why he wants to be a soldier, and his answer is the punchline: "I'll catch the *bakla*!" (*Huhulihin ko ang mga bakla*), said to hosts who appear to be gay comedians. The reviewer confirmed this line.
 
 ## Review
-- Reviewer verdict: _pending_
+- Reviewer verdict: partly accurate (2 of 5 run-2 flags wrong, both fixed)
 - Flags:
-  - [ ] Line 00:00, is it *Ano'ng gusto mong maging paglaki mo?*
+  - [x] Line 00:00: confirmed, *Ano'ng gusto mong maging paglaki mo?*
   - [x] Lines 00:03–00:05 (*Ayos ay ala / Sarate / Shoot*): the host says **"Attention!"**, then **"Ah, kaya pala"**. My guess of *Ay, kaya pala* was close; *Salute* was wrong. The reviewer noted that the audio is barely audible here, which is the kind of input this skill exists to handle.
-  - [ ] Lines 00:07–00:08, is it the drill command *Harap sa kaliwa… Harap!*?
-  - [ ] Line 00:12, the host question: is it *Bakit gusto mong maging sundalo?*
+  - [x] Lines 00:07–00:08: confirmed, *Harap sa kaliwa… Harap!*
+  - [x] Line 00:12: confirmed, *Bakit gusto mong maging sundalo?*
   - [x] Line 00:14: the boy says **"Huhulihin ko ang mga bakla!"** ("I'll catch/arrest the *bakla*"), not *Babarilin* ("shoot"). The skill guessed from the soldier theme instead of the sound. *-ulihin* was already in the raw output, and the future-tense reduplication *hu-* had collapsed into *B-*.
 
 ## Fixes
