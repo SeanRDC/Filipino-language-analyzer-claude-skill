@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Packaged skill archives
+*.zip
+*.skill
+
+# Local scratch audio/transcripts
+scratch/
