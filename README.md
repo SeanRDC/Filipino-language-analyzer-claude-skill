@@ -24,9 +24,26 @@ English-biased speech recognition (ASR) tends to mangle Tagalog and Taglish. Thi
     │   ├── asr-hallucinations.md     # English-ASR mishearings of Tagalog
     │   ├── slang-glossary.md         # Modern slang and reversed words
     │   └── register.md               # Deep → modern Tagalog, contractions
+    ├── scripts/
+    │   ├── transcribe.py             # Video/audio → raw ASR (faster-whisper + yt-dlp)
+    │   └── requirements.txt
     └── examples/
         └── sample-01.md              # Before/after analyses
+tests/
+└── sessions/                         # Logged test runs: raw ASR, output, review, fixes
 ```
+
+## Transcribing Media
+
+The skill can start from audio or video, not only text:
+
+```bash
+pip install -r filipino-asr-analyzer/scripts/requirements.txt   # also needs ffmpeg on PATH
+python filipino-asr-analyzer/scripts/transcribe.py "https://youtu.be/..." --out transcript.txt
+python filipino-asr-analyzer/scripts/transcribe.py clip.mp4 --model medium
+```
+
+Whisper does the listening, and the skill is the second pass that fixes its Tagalog mistakes.
 
 ## Register
 

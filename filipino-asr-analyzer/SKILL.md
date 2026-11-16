@@ -22,6 +22,18 @@ Lean on **modern conversational Tagalog** (Manila-style Taglish) by default. Dee
 
 ## Steps
 
+### 0. Get the Raw Transcript (only when given audio/video)
+If the user provides a media file or a video URL instead of text, transcribe it first with the bundled script (run from this skill's directory):
+
+```bash
+python scripts/transcribe.py <file-or-url> --out <transcript.txt>
+```
+
+*   Defaults: multilingual `small` model, language `tl`. Use `--model medium` or `large-v3` for higher accuracy (slower on CPU), or `--language auto` for heavily English-mixed audio.
+*   Never use English-only `*.en` models; they cannot transcribe Tagalog.
+*   Keep the raw output untouched and show it alongside your cleaned version, so the user can see every correction.
+*   Requirements: `pip install -r scripts/requirements.txt`, plus `ffmpeg` on PATH.
+
 ### 1. Reconstruct the Transcript (ASR Cleanup)
 *   **Identify Phonetic Hallucinations:** English-biased ASRs often map Tagalog syllables to English words (e.g., ASR output "plannel" usually means *plano*, "add toe" usually means *dito*). Sound the phrase out phonetically to deduce the original Tagalog intent.
 *   **Fix Prefix/Suffix Code-Switching:** Correct fractured Taglish conjugations. Reattach prefixes to English root words using hyphens (e.g., *nag-drive*, *papa-deliver*, *i-send*).
