@@ -91,10 +91,12 @@ The hosts ask the boy what he wants to be. He says "a soldier", so they make him
 - Reviewer verdict: _pending_
 - Flags:
   - [ ] Line 00:00, is it *Ano'ng gusto mong maging paglaki mo?*
-  - [ ] Lines 00:03–00:05 (*Ayos ay ala / Sarate / Shoot*), what is actually said?
+  - [x] Lines 00:03–00:05 (*Ayos ay ala / Sarate / Shoot*): the host says **"Attention!"**, then **"Ah, kaya pala"**. My guess of *Ay, kaya pala* was close; *Salute* was wrong. The reviewer noted that the audio is barely audible here, which is the kind of input this skill exists to handle.
   - [ ] Lines 00:07–00:08, is it the drill command *Harap sa kaliwa… Harap!*?
   - [ ] Line 00:12, the host question: is it *Bakit gusto mong maging sundalo?*
-  - [ ] Line 00:14, is the punchline *Babarilin ko ang mga bakla*?
+  - [x] Line 00:14: the boy says **"Huhulihin ko ang mga bakla!"** ("I'll catch/arrest the *bakla*"), not *Babarilin* ("shoot"). The skill guessed from the soldier theme instead of the sound. *-ulihin* was already in the raw output, and the future-tense reduplication *hu-* had collapsed into *B-*.
 
 ## Fixes
-- _pending review_
+- d95e9dd: transcriber stops the repetition loop and keeps short cues.
+- _next commit_: added verified mishearings (*Ayos ay ala* → *Ah, kaya pala*; *Sarate/Shoot* → *Attention*) and the shouted-command guidance to `asr-hallucinations.md` and SKILL.md Step 1.
+- _next commit_: added *Bulihin* → *Huhulihin*, the collapsed-reduplication pattern, and the "closest sound match, not theme" rule (`asr-hallucinations.md` and SKILL.md Gotchas).
