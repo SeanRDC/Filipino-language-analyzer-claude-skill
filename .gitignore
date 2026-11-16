@@ -17,3 +17,6 @@ desktop.ini
 
 # Local scratch audio/transcripts
 scratch/
+
+# Raw test media (kept local; text logs live in tests/sessions/)
+test files/
