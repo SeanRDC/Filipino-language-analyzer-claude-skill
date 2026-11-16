@@ -36,6 +36,7 @@ python scripts/transcribe.py <file-or-url> --out <transcript.txt>
 
 ### 1. Reconstruct the Transcript (ASR Cleanup)
 *   **Identify Phonetic Hallucinations:** English-biased ASRs often map Tagalog syllables to English words (e.g., ASR output "plannel" usually means *plano*, "add toe" usually means *dito*). Sound the phrase out phonetically to deduce the original Tagalog intent.
+*   **Expect the Reverse Error in Tagalog-Mode Whisper:** With `language=tl`, Whisper bends shouted English (e.g., *Attention!*) and fast interjections (e.g., *Ah, kaya pala*) into Tagalog-looking nonsense (*Sarate! Shoot!*, *Ayos ay ala!*). Use the scene (drill, interview, reaction) to rebuild them, and mark the result low confidence until a human confirms it.
 *   **Fix Prefix/Suffix Code-Switching:** Correct fractured Taglish conjugations. Reattach prefixes to English root words using hyphens (e.g., *nag-drive*, *papa-deliver*, *i-send*).
 *   **Restore Stress and Glottal Stops:** ASR output drops diacritics, so use sentence context to tell apart words that differ only in stress or a final glottal stop (e.g., *bása* [read] vs. *basâ* [wet], *búkas* [tomorrow] vs. *bukás* [open]).
 
@@ -51,4 +52,5 @@ python scripts/transcribe.py <file-or-url> --out <transcript.txt>
 ## Gotchas
 *   Never output rigid, textbook Filipino (formal or academic register) unless explicitly requested. Manila-style conversational Taglish is the default for natural dubbing.
 *   Do not "correct" grammatically accepted Taglish (like *nag-a-update*) into pure English or pure Tagalog.
+*   When ASR output is ambiguous, pick the reconstruction closest in sound, not the one that best fits the scene or makes the strongest punchline. Theme-driven guessing turned *Bulihin* into "shoot" (*babarilin*) when it was really "catch" (*huhulihin*).
 *   Watch out for false friends: Spanish loanwords in Tagalog often have slightly different meanings than in modern Spanish.
