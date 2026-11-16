@@ -44,12 +44,56 @@ A comedic interview. The hosts ask a boy what he wants to be when he grows up. H
 ### Dubbing Output
 Not requested.
 
+## Run 2 (after d95e9dd: VAD off, no previous-text conditioning)
+
+Same file, model `small`, language `tl`, default flags.
+
+### Raw ASR
+```
+[00:00 -> 00:01] Ang gusto mo maging paglary mo?
+[00:02 -> 00:03] Suntalo!
+[00:03 -> 00:03] Ay!
+[00:03 -> 00:04] Ayos ay ala!
+[00:04 -> 00:05] Sarate!
+[00:05 -> 00:05] Shoot!
+[00:07 -> 00:08] Anang sa kalawang!
+[00:08 -> 00:09] Ayo!
+[00:11 -> 00:12] Yanang ganda!
+[00:12 -> 00:14] Bakit gusto mo maging suntalo?
+[00:14 -> 00:15] Bulihin ko ang mga bakla!
+```
+The repetition loop is gone. 11 cues instead of 9, and no duplicated lines.
+
+### Cleaned Transcript
+| Time | Raw | Cleaned (best guess) | Confidence |
+|---|---|---|---|
+| 00:00 | Ang gusto mo maging paglary mo? | **Host:** Ano'ng gusto mong maging paglaki mo? | high (run 1 and run 2 agree) |
+| 00:02 | Suntalo! | **Boy:** Sundalo! | high |
+| 00:03 | Ay! | **Host:** Ay! | high |
+| 00:03 | Ayos ay ala! | ? *Ay, kaya pala!* | low |
+| 00:04 | Sarate! | ? *Salute!* (drill command) | low |
+| 00:05 | Shoot! | ? unclear; may be part of the drill or crowd noise | low |
+| 00:07 | Anang sa kalawang! | **Host:** Harap sa kaliwa! (drill: "left face") | medium |
+| 00:08 | Ayo! | **Host:** Harap! (the execution word of the command) | medium |
+| 00:11 | Yanang ganda! | **Host:** Ayan, ang ganda! | medium |
+| 00:12 | Bakit gusto mo maging suntalo? | **Host:** Bakit gusto mong maging sundalo? | high |
+| 00:14 | Bulihin ko ang mga bakla! | **Boy:** Babarilin ko ang mga bakla! | medium (*bakla* now heard directly; *Babarilin* still inferred) |
+
+### Corrections Made
+- *paglary* → *paglaki*: the *-ki* syllable was misheard as *-ry*.
+- *Anang sa kalawang* / *Ayo* → *Harap sa kaliwa… Harap!*: this is the Filipino military drill command (preparatory word + execution word). It reframes the 00:06 line from run 1 (*Sa kalawang*), which was not *kalaban*.
+- *Yanang ganda* → *Ayan, ang ganda*: dropped initial *A-* and merged words.
+
+### Intent / Analysis (revised)
+The hosts ask the boy what he wants to be. He says "a soldier", so they make him perform drill commands (salute, left face) and praise him (*Ayan, ang ganda!*). Then they ask why he wants to be a soldier, and his answer is the punchline: "So I can shoot the *bakla*", said to hosts who appear to be gay comedians. This is still **unconfirmed**.
+
 ## Review
 - Reviewer verdict: _pending_
 - Flags:
   - [ ] Line 00:00, is it *Ano'ng gusto mong maging paglaki mo?*
-  - [ ] Line 00:06, what is actually said?
-  - [ ] Line 00:07–00:14, the exact host question
+  - [ ] Lines 00:03–00:05 (*Ayos ay ala / Sarate / Shoot*), what is actually said?
+  - [ ] Lines 00:07–00:08, is it the drill command *Harap sa kaliwa… Harap!*?
+  - [ ] Line 00:12, the host question: is it *Bakit gusto mong maging sundalo?*
   - [ ] Line 00:14, is the punchline *Babarilin ko ang mga bakla*?
 
 ## Fixes
