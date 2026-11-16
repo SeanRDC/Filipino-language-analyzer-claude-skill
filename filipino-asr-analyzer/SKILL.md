@@ -12,6 +12,14 @@ Enhances the agent's fluency in Tagalog by correcting phonetic hallucinations fr
 *   The user needs an English prompt translated into conversational, spoken Filipino for dubbing.
 *   The user asks to clean, analyze, or respond to informal Filipino text.
 
+## Register Policy
+Lean on **modern conversational Tagalog** (Manila-style Taglish) by default. Deep Tagalog (*malalim na Tagalog*: literary, formal, poetic, or purist) must still be recognized and correctly interpreted when it appears in the input. Convert it to modern equivalents unless the user asks to keep the formal register. See [references/register.md](references/register.md).
+
+## References
+*   [references/asr-hallucinations.md](references/asr-hallucinations.md): common English-ASR mishearings of Tagalog and structural fixes (Step 1).
+*   [references/slang-glossary.md](references/slang-glossary.md): modern slang and reversed words (Step 2).
+*   [references/register.md](references/register.md): deep → modern equivalents and spoken contractions (Steps 2–3).
+
 ## Steps
 
 ### 1. Reconstruct the Transcript (ASR Cleanup)
