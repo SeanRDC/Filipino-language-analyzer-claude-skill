@@ -1,35 +1,29 @@
-# Filipino Language Analyzer — Claude Skill
+# Filipino ASR Analyzer — Claude Skill
 
-A [Claude skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) for analyzing Filipino (Tagalog) text.
+A [Claude skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) that cleans, interprets, and localizes noisy Tagalog/Filipino speech transcripts. It's built for dubbing and natural-sounding playback.
 
-> **Status:** 🚧 Early initialization. The skill is not functional yet.
+> **Status:** 🚧 Early initialization. The first draft of `SKILL.md` exists, but it hasn't been tested yet.
 
-## Goal
+## What It Does
 
-Give Claude a focused, repeatable way to break down Filipino text. The analysis covers:
+English-biased speech recognition (ASR) tends to mangle Tagalog and Taglish. This skill teaches Claude to:
 
-- **Morphology:** root words (*salitang-ugat*) and affixes (*panlapi*): prefixes, infixes, suffixes, and circumfixes.
-- **Verb focus and aspect:** actor/object focus (*pokus*) and aspect (*aspekto*: perfective, imperfective, contemplative).
-- **Parts of speech:** tagging of *pangngalan*, *pandiwa*, *pang-uri*, *pang-abay*, and others.
-- **Particles and markers:** *ang/ng/sa*, *si/ni/kay*, enclitics like *na, pa, din/rin, lang*.
-- **Code-switching:** detection of Taglish (Tagalog–English mixing).
-- **Plain-language explanations:** results that learners can read, not only linguists.
+1. **Reconstruct transcripts.** Undo phonetic hallucinations ("add toe" → *dito*), reattach Taglish affixes (*nag-drive*, *i-send*), and recover stress or glottal-stop distinctions from context (*bása* vs. *basâ*).
+2. **Analyze meaning.** Pull out the speaker's intent and map slang such as *charot*, *lodi* and *omsim*.
+3. **Localize for dubbing.** Write conversational Manila Taglish whose cadence and syllable count fit the source audio timing.
 
-## Planned Structure
+## Structure
 
 ```
 .
 ├── README.md
-└── filipino-language-analyzer/
-    ├── SKILL.md          # Skill entry point (frontmatter + instructions)
-    ├── references/       # Grammar notes, affix tables, particle lists
-    ├── scripts/          # Helper scripts used by the skill
-    └── examples/         # Sample inputs and expected analyses
+└── filipino-asr-analyzer/
+    └── SKILL.md          # Skill entry point (frontmatter + instructions)
 ```
 
 ## Installation
 
-_Coming soon._ Instructions will be added after the first working version of the skill.
+_Coming soon._
 
 ## Usage
 
@@ -37,10 +31,10 @@ _Coming soon._
 
 ## Roadmap
 
-- [ ] Project initialization
-- [ ] Draft `SKILL.md`
-- [ ] Affix and particle reference files
-- [ ] Example analyses
+- [x] Project initialization
+- [x] Draft `SKILL.md`
+- [ ] Reference files (ASR hallucination patterns, slang glossary, contractions)
+- [ ] Example transcripts with expected output
 - [ ] Testing and evaluation
 - [ ] First release
 
