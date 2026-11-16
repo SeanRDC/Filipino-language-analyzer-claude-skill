@@ -76,6 +76,9 @@ def main() -> None:
                    help="language code (default: tl). Use 'auto' to let Whisper detect it.")
     p.add_argument("--out", type=Path, help="also write the transcript to this file")
     p.add_argument("--no-timestamps", action="store_true", help="omit [mm:ss] timestamps")
+    p.add_argument("--vad", action="store_true",
+                   help="enable voice-activity filtering (faster on long, quiet media, but drops short "
+                        "interjections and commands like 'Ay!' or 'Attention!')")
     args = p.parse_args()
 
     if args.model.endswith(".en"):
@@ -104,7 +107,17 @@ def main() -> None:
 
         language = None if args.language == "auto" else args.language
         audio = load_audio(media)
-        segments, info = model.transcribe(audio, language=language, beam_size=5, vad_filter=True)
+        # Tuned on session 2026-11-16-01: with VAD + conditioning on previous text, Whisper
+        # looped on earlier lines ("Suntalo!" x3) and skipped short cues. Turning both off
+        # recovered them; word timestamps give tighter segment boundaries for dubbing.
+        segments, info = model.transcribe(
+            audio,
+            language=language,
+            beam_size=5,
+            vad_filter=args.vad,
+            condition_on_previous_text=False,
+            word_timestamps=True,
+        )
 
         lines = [
             f"# source: {args.source}",
