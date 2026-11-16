@@ -17,4 +17,13 @@ Enhances the agent's fluency in Tagalog by correcting phonetic hallucinations fr
 ### 1. Reconstruct the Transcript (ASR Cleanup)
 *   **Identify Phonetic Hallucinations:** English-biased ASRs often map Tagalog syllables to English words (e.g., ASR output "plannel" usually means *plano*, "add toe" usually means *dito*). Sound the phrase out phonetically to deduce the original Tagalog intent.
 *   **Fix Prefix/Suffix Code-Switching:** Correct fractured Taglish conjugations. Reattach prefixes to English root words using hyphens (e.g., *nag-drive*, *papa-deliver*, *i-send*).
-*   **Restore Stress and Glottal Stops:** ASR output drops diacritics, so use sentence context to tell apart words that differ only in stress or a final glottal stop (e.g., *bása* [read] vs. *basâ* [wet], *pitó* [seven] vs. *pitô* [whistle]).
+*   **Restore Stress and Glottal Stops:** ASR output drops diacritics, so use sentence context to tell apart words that differ only in stress or a final glottal stop (e.g., *bása* [read] vs. *basâ* [wet], *búkas* [tomorrow] vs. *bukás* [open]).
+
+### 2. Semantic Analysis
+*   Extract the core intent of the cleaned prompt.
+*   Map informal slang or regionalisms (e.g., *charot*, *lodi*, *omsim*) to their semantic equivalents before formulating a response.
+
+### 3. Localization & Dubbing Output (If generating spoken response)
+*   **Match Cadence:** Literal translations sound overly formal and robotic in Tagalog. Translate the *intent*, not the literal words.
+*   **Use Conversational Taglish:** Where natural to a native speaker in an everyday setting, keep standard English loanwords rather than forcing purist coinages (e.g., use "airplane" or *eroplano* instead of *salipawpaw*).
+*   **Syllable Pacing:** If the output is for dubbing, keep sentence length and syllable count as close to the source audio timing as possible. Use contractions (e.g., *'yung* instead of *iyong*, *sa'yo* instead of *sa iyo*) to speed up the sentence.
