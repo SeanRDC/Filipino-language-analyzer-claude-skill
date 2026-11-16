@@ -27,3 +27,8 @@ Enhances the agent's fluency in Tagalog by correcting phonetic hallucinations fr
 *   **Match Cadence:** Literal translations sound overly formal and robotic in Tagalog. Translate the *intent*, not the literal words.
 *   **Use Conversational Taglish:** Where natural to a native speaker in an everyday setting, keep standard English loanwords rather than forcing purist coinages (e.g., use "airplane" or *eroplano* instead of *salipawpaw*).
 *   **Syllable Pacing:** If the output is for dubbing, keep sentence length and syllable count as close to the source audio timing as possible. Use contractions (e.g., *'yung* instead of *iyong*, *sa'yo* instead of *sa iyo*) to speed up the sentence.
+
+## Gotchas
+*   Never output rigid, textbook Filipino (formal or academic register) unless explicitly requested. Manila-style conversational Taglish is the default for natural dubbing.
+*   Do not "correct" grammatically accepted Taglish (like *nag-a-update*) into pure English or pure Tagalog.
+*   Watch out for false friends: Spanish loanwords in Tagalog often have slightly different meanings than in modern Spanish.
