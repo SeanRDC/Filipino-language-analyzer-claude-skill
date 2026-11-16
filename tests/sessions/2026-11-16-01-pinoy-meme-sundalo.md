@@ -77,7 +77,7 @@ The repetition loop is gone. 11 cues instead of 9, and no duplicated lines.
 | 00:08 | Ayo! | **Host:** Harap! (the execution word of the command) | medium |
 | 00:11 | Yanang ganda! | **Host:** Ayan, ang ganda! | medium |
 | 00:12 | Bakit gusto mo maging suntalo? | **Host:** Bakit gusto mong maging sundalo? | high |
-| 00:14 | Bulihin ko ang mga bakla! | **Boy:** Babarilin ko ang mga bakla! | medium (*bakla* now heard directly; *Babarilin* still inferred) |
+| 00:14 | Bulihin ko ang mga bakla! | **Boy:** Huhulihin ko ang mga bakla! | confirmed by reviewer (skill guessed *Babarilin*, wrong) |
 
 ### Corrections Made
 - *paglary* → *paglaki*: the *-ki* syllable was misheard as *-ry*.
@@ -85,7 +85,7 @@ The repetition loop is gone. 11 cues instead of 9, and no duplicated lines.
 - *Yanang ganda* → *Ayan, ang ganda*: dropped initial *A-* and merged words.
 
 ### Intent / Analysis (revised)
-The hosts ask the boy what he wants to be. He says "a soldier", so they make him perform drill commands (salute, left face) and praise him (*Ayan, ang ganda!*). Then they ask why he wants to be a soldier, and his answer is the punchline: "So I can shoot the *bakla*", said to hosts who appear to be gay comedians. This is still **unconfirmed**.
+The hosts ask the boy what he wants to be. He says "a soldier", so they make him perform drill commands (salute, left face) and praise him (*Ayan, ang ganda!*). Then they ask why he wants to be a soldier, and his answer is the punchline: "I'll catch the *bakla*!" (*Huhulihin ko ang mga bakla*), said to hosts who appear to be gay comedians. The reviewer confirmed this line.
 
 ## Review
 - Reviewer verdict: _pending_
