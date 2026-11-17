@@ -56,6 +56,7 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 | magliluto / kawale / naingit | *magluluto* / *kawali* / *mainit* | vowel swaps and *ma-* → *na-* | 2026-11-16-06 |
 | English plan | *leche flan* | Filipino dish name (Spanish-derived) bent into English words | 2026-11-17-01 |
 | lang yan natin ang | *lagyan natin ng* | *lag-yan* heard as *lang yan*; the marker follows the verb (*lagyan … ng*) | 2026-11-17-01 |
+| atto naman ang window of eagle | *Heto naman ang wind of eagle* | English move name; the `en` pass had it right (*wind*); don't "fix" it to *wing* | 2026-11-17-02 |
 
 ## Shouted Commands and Interjections
 
