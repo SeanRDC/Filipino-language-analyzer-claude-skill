@@ -1,13 +1,14 @@
 ---
 name: filipino-asr-analyzer
-description: Cleans, interprets, and localizes noisy Tagalog/Filipino audio transcripts. Use when the user feeds messy ASR text, Taglish, or asks to prepare/analyze conversational Filipino for dubbing and fluent playback.
+description: Transcribes, cleans, interprets, and localizes noisy Tagalog/Filipino speech. Use when the user gives Tagalog or Taglish audio/video (including noisy, near-inaudible meme, TikTok, livestream, or news clips) or messy ASR text, or asks to analyze conversational Filipino or prepare it for dubbing and fluent playback.
 ---
 # Filipino ASR Analyzer & Dubbing Engine
 
 ## Summary
-Enhances the agent's fluency in Tagalog by correcting phonetic hallucinations from English-biased ASR, interpreting Taglish code-switching, and ensuring output cadence is natural enough for voice dubbing.
+Enhances the agent's fluency in Tagalog by recovering speech from hard audio, correcting phonetic hallucinations from ASR, interpreting Taglish code-switching, and ensuring output cadence is natural enough for voice dubbing.
 
 ## When to Use
+*   The user provides audio or video with Tagalog/Taglish speech, however noisy.
 *   The user provides an ASR transcript containing mangled Tagalog or Taglish.
 *   The user needs an English prompt translated into conversational, spoken Filipino for dubbing.
 *   The user asks to clean, analyze, or respond to informal Filipino text.
@@ -15,34 +16,64 @@ Enhances the agent's fluency in Tagalog by correcting phonetic hallucinations fr
 ## Register Policy
 Lean on **modern conversational Tagalog** (Manila-style Taglish) by default. Deep Tagalog (*malalim na Tagalog*: literary, formal, poetic, or purist) must still be recognized and correctly interpreted when it appears in the input. Convert it to modern equivalents unless the user asks to keep the formal register. See [references/register.md](references/register.md).
 
+*   **Transcripts are always verbatim.** Register conversion applies only to the interpretation and dubbing steps, never to the cleaned transcript.
+*   **Keep performative formality.** When a speaker puts on a formal register for effect (a kid imitating a cooking show's *"Ngayon tayo ay magluluto na"*, a mock news anchor, a pageant answer, a teacher voice), the formality *is* the meaning or the joke. Keep it in dubbing, and note it in the analysis.
+
 ## References
-*   [references/asr-hallucinations.md](references/asr-hallucinations.md): common English-ASR mishearings of Tagalog and structural fixes (Step 1).
-*   [references/slang-glossary.md](references/slang-glossary.md): modern slang and reversed words (Step 2).
+*   [references/asr-hallucinations.md](references/asr-hallucinations.md): verified Whisper mishearings of Tagalog, plus sound and structure patterns (Step 1).
+*   [references/slang-glossary.md](references/slang-glossary.md): modern slang, reversed words and euphemisms (Steps 1–2).
 *   [references/register.md](references/register.md): deep → modern equivalents and spoken contractions (Steps 2–3).
 
 ## Steps
 
-### 0. Get the Raw Transcript (only when given audio/video)
-If the user provides a media file or a video URL instead of text, transcribe it first with the bundled script (run from this skill's directory):
+### 0. Get the Raw Transcript and Gather Evidence (only when given audio/video)
+
+**0a. Transcribe** with the bundled script (run from this skill's directory):
 
 ```bash
 python scripts/transcribe.py <file-or-url> --out <transcript.txt>
 ```
 
-*   Defaults: multilingual `small` model, language `tl`. Use `--model medium` or `large-v3` for higher accuracy (slower on CPU), or `--language auto` for heavily English-mixed audio.
-*   Never use English-only `*.en` models; they cannot transcribe Tagalog.
+*   Defaults: multilingual `small` model, language `tl`, VAD off, and Whisper's "this is silence" filter off. On noisy Tagalog speech, that filter threw away whole 30-second windows of real dialogue. Pass `--skip-quiet` only for long recordings with genuinely silent stretches. Use `--model medium` or `large-v3` for higher accuracy (slower on CPU).
+*   Never use English-only `*.en` models. **Do not add an `initial_prompt`.** In testing, a Taglish prompt leaked its own words into the transcript or made Whisper drop whole lines.
 *   Keep the raw output untouched and show it alongside your cleaned version, so the user can see every correction.
 *   Requirements: `pip install -r scripts/requirements.txt`, plus `ffmpeg` on PATH.
 
+**0b. Hard-audio routine.** When the audio is noisy, fast, overlapping or barely audible, or the transcript has gaps or gibberish, gather all of this before cleaning:
+
+1. **Check for gaps.** If the transcript ends early or skips a stretch, test whether that stretch is really silent: `ffmpeg -i <media> -af silencedetect=n=-35dB:d=1 -f null -`. Sound with no transcript means missed speech, not silence.
+2. **Run it 2–3 times.** Gibberish, or words from an unrelated language (e.g., German *darauf* in a Tagalog clip), means Whisper fell back to random sampling, so each run differs. Line the runs up and trust only the words that recur.
+3. **Make one English pass** (`--language en`). Whisper *translates* instead of transcribing, and that English gloss tells you what a garbled line is about (*"I'm just a friend"* → *kaibigan ko*; *"every month"* → *buwan-buwan*). Use it for meaning only; its wording is never what was said
+4. **Read the screen.** Pull frames (`ffmpeg -i <video> -vf fps=1 frames/%03d.jpg`, or crop and tile the caption band) and collect:
+    *   **Broadcast subtitles** (TV news): close to ground truth. They expose translation leaks and acronym errors.
+    *   **Fan captions** (TikTok/Reels/Shorts): evidence, not truth. They are split across frames and unpunctuated, so stitch them into sentences. Captioners mishear too (*"SA MUKHA ANG"* was *sa mukha kang*). When a caption breaks Tagalog grammar, trust the grammatical reading.
+    *   **Post description, hashtags and the platform's search suggestion:** they often quote the key line (*"Burst fade parin to ya?"*, *"magluluto na original video"*, *"tatlong basong kutsara"*).
+    *   **Livestream comments:** the speaker is answering them, which tells you who *kayo/n'yo* is and what was asked. Never transcribe comments as speech.
+    *   **Scene:** setting, roles and props (police station, kitchen, interview with microphones) narrow the vocabulary.
+    *   Overlay titles added by re-uploaders (*"mga taong mahilig sa yosi"*) are meme framing, not dialogue.
+
 ### 1. Reconstruct the Transcript (ASR Cleanup)
-*   **Identify Phonetic Hallucinations:** English-biased ASRs often map Tagalog syllables to English words (e.g., ASR output "plannel" usually means *plano*, "add toe" usually means *dito*). Sound the phrase out phonetically to deduce the original Tagalog intent.
-*   **Expect the Reverse Error in Tagalog-Mode Whisper:** With `language=tl`, Whisper bends shouted English (e.g., *Attention!*) and fast interjections (e.g., *Ah, kaya pala*) into Tagalog-looking nonsense (*Sarate! Shoot!*, *Ayos ay ala!*). Use the scene (drill, interview, reaction) to rebuild them, and mark the result low confidence until a human confirms it.
-*   **Fix Prefix/Suffix Code-Switching:** Correct fractured Taglish conjugations. Reattach prefixes to English root words using hyphens (e.g., *nag-drive*, *papa-deliver*, *i-send*).
-*   **Restore Stress and Glottal Stops:** ASR output drops diacritics, so use sentence context to tell apart words that differ only in stress or a final glottal stop (e.g., *bása* [read] vs. *basâ* [wet], *búkas* [tomorrow] vs. *bukás* [open]).
+Work through the evidence in this order. The patterns behind each step, with verified examples, are in [references/asr-hallucinations.md](references/asr-hallucinations.md).
+
+1.  **Anchor on the hard evidence.** Lines confirmed by subtitles, descriptions or captions are fixed points. Rebuild the rest around them.
+2.  **Decode by sound, word by word.** Sound each fragment out and apply the sound patterns: vowel swaps (*kawale* → *kawali*), stop swaps (*napten* → *napkin*), v→b and f→p in English loanwords (*Bicap* → *V-cut*), collapsed reduplication (*nag-drog* → *nagdodroga*), words split at the wrong boundary (*naman tika* → *ng mantika*), address terms (*kaya* → *kuya*), and English nouns turned into verbs (*nagnanapten* → *nagnanapkin*). Pick the candidate with the fewest sound changes.
+3.  **Catch Whisper's English-side errors.** In `tl` mode, Whisper bends shouted English and interjections into Tagalog-looking nonsense (*Sarate! Shoot!* ← *Attention!*). It also outputs English *translations* of Tagalog lines (*"What is CBDC?"* ← *"Ano 'yung CBD?"*), drifts acronyms (*CBD* → *CBDC*), and drops the small Tagalog words around English terms. Flag a bare English line inside a Tagalog exchange as a possible leak.
+4.  **Match the domain vocabulary.** Guess the domain from the scene (food, haircuts, drugs, school, games), then test garbled nouns against its words. Whisper turns Filipino dish names (*English plan* ← *leche flan*) and English jargon (*Mersfade* ← *burst fade*) into nonsense.
+5.  **Use the conversation's structure.**
+    *   **The speaker's own repeated phrases:** a clear *"Paano mo nasabing mabilisan?"* later decodes *"Paano nga sabi?"* earlier.
+    *   **The interview turn pattern:** question → dodge → the question repeated → answer.
+    *   **Procedural order** in tutorials and recipes: *"Pag mainit na ang kawali…"* means the step before was heating (*pagpapainit … ng mantika*).
+6.  **Check the grammar fits.** The verb decides the marker (*lagyan … ng*, *ilagay … ang*), and linkers attach where they belong (*nasabing*, *siyang*). A mismatch means a word was misheard.
+7.  **Preserve what was heard.**
+    *   Never delete a small word Whisper actually caught (*na*, *nga*, *pa*, *eh*, *po*, *lang*), and keep English discourse markers (*so*, *okay*, *actually*).
+    *   Reattach split affixes with hyphens (*nag-drive*, *i-send*).
+    *   Restore stress and glottal stops from context (*bása*/*basâ*, *búkas*/*bukás*).
+    *   Cleanup repairs what was misheard; it does not tidy up the speaker's grammar.
+8.  **Never abandon a stretch.** Write the full best-guess sentence with a confidence tag (high / medium / low). A specific guess helps the reviewer more than "[unclear]". Mark edit cuts at clip edges as cut (*"…to sa ating…"*) instead of inventing words.
 
 ### 2. Semantic Analysis
-*   Extract the core intent of the cleaned prompt.
-*   Map informal slang or regionalisms (e.g., *charot*, *lodi*, *omsim*) to their semantic equivalents before formulating a response.
+*   Extract the core intent of the cleaned transcript, including who says what and why it is funny or notable.
+*   Map informal slang, euphemisms or regionalisms (e.g., *charot*, *lodi*, *omsim*, *amats*, *dinadatnan*) to their semantic equivalents before formulating a response.
 
 ### 3. Localization & Dubbing Output (If generating spoken response)
 *   **Match Cadence:** Literal translations sound overly formal and robotic in Tagalog. Translate the *intent*, not the literal words.
@@ -52,5 +83,6 @@ python scripts/transcribe.py <file-or-url> --out <transcript.txt>
 ## Gotchas
 *   Never output rigid, textbook Filipino (formal or academic register) unless explicitly requested. Manila-style conversational Taglish is the default for natural dubbing.
 *   Do not "correct" grammatically accepted Taglish (like *nag-a-update*) into pure English or pure Tagalog.
-*   When ASR output is ambiguous, pick the reconstruction closest in sound, not the one that best fits the scene or makes the strongest punchline. Theme-driven guessing turned *Bulihin* into "shoot" (*babarilin*) when it was really "catch" (*huhulihin*).
+*   **Never "correct" the speaker's own mistake.** A phrase that makes no sense (*"tatlong basong kutsara"*, "three glasses of spoon") may be exactly what was said, and is often the joke the meme exists for. If the post description, captions or search suggestion quote the odd phrase, it was really said, so keep it verbatim and explain it in the analysis. Fix only what the ASR misheard.
+*   **Sound beats story.** When ASR output is ambiguous, pick the reconstruction closest in sound, not the one that best fits the scene or makes the strongest punchline. Theme-driven guessing turned *Bulihin* into "shoot" (*babarilin*) when it was really "catch" (*huhulihin*), and the English gloss *"add oil"* turned *papay* into *ilalagay* when it was *pagpapainit*.
 *   Watch out for false friends: Spanish loanwords in Tagalog often have slightly different meanings than in modern Spanish.
