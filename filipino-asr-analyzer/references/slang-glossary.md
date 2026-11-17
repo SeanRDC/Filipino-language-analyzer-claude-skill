@@ -30,3 +30,5 @@ Many terms come from **syllable reversal** (*baliktad*): *idol* → *lodi*, *mal
 | *tampo* | — | sulking from hurt feelings |
 | *sus* | — | expression of disbelief |
 | *edi wow* | *e di* + *wow* | sarcastic "good for you" |
+| *amats* | *tama* reversed (+ *-s*) | being high or intoxicated (*may amats*, *walang amats*). Whisper drops the *-s* (*amat*) |
+
