@@ -32,3 +32,13 @@ Many terms come from **syllable reversal** (*baliktad*): *idol* → *lodi*, *mal
 | *edi wow* | *e di* + *wow* | sarcastic "good for you" |
 | *amats* | *tama* reversed (+ *-s*) | being high or intoxicated (*may amats*, *walang amats*). Whisper drops the *-s* (*amat*) |
 
+## Euphemisms (Body and Health)
+
+Everyday indirect terms that show up in casual talk and memes. Recognize them; do not translate them literally.
+
+| Term | Literal | Meaning |
+|---|---|---|
+| *datnan* / *dinadatnan* | "to be arrived upon" | to get / be having one's period |
+| *may dalaw* | "has a visitor" | having one's period |
+| *regla* / *mens* | (Spanish / English clipping) | menstruation |
+| *nagnanapkin* | *nag-* + *napkin* | uses sanitary napkins |
