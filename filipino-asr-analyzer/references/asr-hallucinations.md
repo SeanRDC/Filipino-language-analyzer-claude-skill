@@ -38,6 +38,15 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 | Wala naman siya amat eh | *Wala naman siyang amats, eh* | slang *amats* ("high"); the linker *-ng* and the final *-s* were dropped | 2026-11-16-03 |
 | CBDC. | *CBD siya, eh.* | acronym changed into a better-known one, and the Tagalog words after it were dropped | 2026-11-16-03 |
 | What is CBDC? | *Ano 'yung CBD?* | **translated**: Whisper output English for a Tagalog line, even in `tl` mode | 2026-11-16-03 |
+| Kaya, … kaya? | *Kuya, … kuya?* | the address term *kuya* (also *ate*) misheard as *kaya* | 2026-11-16-04 |
+| nag-drog ako / droga ka ba | *nagdodroga ka ba* | progressive reduplication *nag-do-droga* collapsed, and *ka ba* misheard as *ako* | 2026-11-16-04 |
+| Paano nga sabi? / Paano mo na sabi | *Paano mo nasabi(ng)…?* | *mo* dropped, *nasabi* split, linker *-ng* lost | 2026-11-16-04 |
+| Interactes na nga ako | *Ida-drug test nga ako* | Taglish future *i-da-* + English *drug test* (the reduplication lands on the English word) bent into a fake English word | 2026-11-16-04 |
+| Lelan, paano kong kaya nag-drog ako | *Tinatanong ko nga, eh, nagdodroga ka ba?* | a repeated question that came out almost unrecognizable | 2026-11-16-04 |
+| kaya vika ko | *kaibigan ko* | decoded with the English-mode gloss *"I'm just a friend"* | 2026-11-16-04 |
+| Walang bayat | *Walang bayad* | final *d* → *t* | 2026-11-16-04 |
+| kupit | *gupit* | g→k devoicing (like *suntalo* → *sundalo*) | 2026-11-16-04 |
+| great ka ba / Ganit ka ba | *Galit ka ba?* | *l* misheard; English mode bends the word into *great* | 2026-11-16-04 |
 
 ## Shouted Commands and Interjections
 
@@ -50,9 +59,9 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 
 ## Structural Patterns
 
-- **Collapsed reduplication (future/contemplative aspect):** Tagalog marks the future by repeating the first syllable (*hu-hulihin*, *ba-barilin*, *ka-kain*). ASR often merges the repeated syllable into one, sometimes with a changed consonant (*Bulihin* ← *Huhulihin*). If a verb root looks oddly short or starts with a strange consonant, try putting the reduplicated syllable back.
+- **Collapsed reduplication (future and progressive aspect):** Tagalog repeats the first syllable of the root for the future (*hu-hulihin*, *ba-barilin*, and on English words too: *i-da-drug test*), the ongoing tense after *nag-/mag-/um-* (*nag-do-droga*, *nag-a-update*, *ka-kain*), and causatives with *pa-* (*pag-pa-pa-init*, *magpapainit*). ASR often merges the repeated syllable into one, sometimes with a changed consonant (*Bulihin* ← *Huhulihin*, *nag-drog* ← *nagdodroga*). If a verb root looks oddly short or starts with a strange consonant, try putting the reduplicated syllable back.
+- **Address terms:** *kuya*, *ate*, *boss*, *sir*, *pare* often open or close a question (*"Kuya, … ka ba, kuya?"*). Whisper turns *kuya* into *kaya*. A *kaya* at the start or end of a question is usually *kuya*. The term is also clipped to *'ya* (*kuya*) or *'te* (*ate*) and fused with the word before it (*"'to, 'ya?"* → *tayo*).
 - **Prefer the closest sound match over the most dramatic reading:** Choose the candidate that needs the fewest sound changes. *Bulihin* → *Huhulihin* keeps *-ulihin* intact, while *Babarilin* would change most of the word. Do not let the scene's theme (e.g., soldier → "shoot") pull you toward a more violent or sensational verb.
-
 - **Split affixes:** "nag drive", "i send", "mag pa deliver" → *nag-drive*, *i-send*, *magpa-deliver*. Reattach the affix to the English root with a hyphen.
 - **Fused particles:** "kana", "nalang", "dinaman" → *ka na*, *na lang*, *din naman*. Split them back into separate words.
 - **ng / nang confusion:** ASR spells both as "ng" or "nang". Use *ng* before nouns (object/possessor marker) and *nang* for "when", "so that", manner, or repetition (*tumakbo nang mabilis*, *kain nang kain*).
