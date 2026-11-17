@@ -52,6 +52,7 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 | ba rin tayo? | *pa rin 'to, 'ya?* | b/p confusion; clipped *'ya* (*kuya*) fused with *'to* | 2026-11-16-05 |
 | kasi nga lang | *kaso nga lang* | *kaso* ("but") misheard as *kasi* ("because") | 2026-11-16-05 |
 | Pag-antayan kasi sa mukha ano | *Maganda 'yan kesa sa mukha kang ano…* | the opening was lost; the fan caption also misheard *kang* as *ANG* | 2026-11-16-05 |
+| magliluto / kawale / naingit | *magluluto* / *kawali* / *mainit* | vowel swaps and *ma-* → *na-* | 2026-11-16-06 |
 
 ## Shouted Commands and Interjections
 
@@ -73,5 +74,7 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 - **Split affixes:** "nag drive", "i send", "mag pa deliver" → *nag-drive*, *i-send*, *magpa-deliver*. Reattach the affix to the English root with a hyphen.
 - **Fused particles:** "kana", "nalang", "dinaman" → *ka na*, *na lang*, *din naman*. Split them back into separate words.
 - **ng / nang confusion:** ASR spells both as "ng" or "nang". Use *ng* before nouns (object/possessor marker) and *nang* for "when", "so that", manner, or repetition (*tumakbo nang mabilis*, *kain nang kain*).
+- **Vowel swaps (i↔e, u↔o):** Tagalog speakers blur *i/e* and *u/o*, especially at the end of a word, and Whisper spells exactly what it hears (*kawale* → *kawali*, *magliluto* → *magluluto*, *lalake* → *lalaki*). Restore the standard spelling unless the word is a real *e/o* word (*babae*, *ano*, *sino*) or a deliberate dialect or regional spelling.
+- **n↔m and extra consonants on adjectives:** *naingit na* → *mainit na*. A *ma-* adjective that comes out as *na-* plus a stray consonant is usually the plain *ma-* word.
 - **Dropped glottal stops and stress:** Text without diacritics loses the difference between *bása*/*basâ*, *búkas*/*bukás*, *báka*/*baká*. Decide from context.
 - **Language mislabel:** *hindi* (no/not) can come out capitalized as the language "Hindi".
