@@ -54,6 +54,8 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 | Pag-antayan kasi sa mukha ano | *Maganda 'yan kesa sa mukha kang ano…* | the opening was lost; the fan caption also misheard *kang* as *ANG* | 2026-11-16-05 |
 | so mo papay dito kaya naman tika sa kawale | *So pagpapainit na tayo ng mantika sa kawali* | reduplicated *pa-pa-init* collapsed (*papay*); *ng mantika* split as *naman tika*; *-i* → *-e* | 2026-11-16-06 |
 | magliluto / kawale / naingit | *magluluto* / *kawali* / *mainit* | vowel swaps and *ma-* → *na-* | 2026-11-16-06 |
+| English plan | *leche flan* | Filipino dish name (Spanish-derived) bent into English words | 2026-11-17-01 |
+| lang yan natin ang | *lagyan natin ng* | *lag-yan* heard as *lang yan*; the marker follows the verb (*lagyan … ng*) | 2026-11-17-01 |
 
 ## Shouted Commands and Interjections
 
@@ -72,6 +74,8 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 - **Filipino accent on English loanwords (v→b, f→p, z→s):** many speakers say English *v* as *b* and *f* as *p*, and Whisper spells what it hears. *Bicap* is *V-cut* (said "bi-cut"), and *Mersfade* is *burst fade*. When a garbled word has *b/p/s* in it and the topic is English-heavy (haircuts, gadgets, food, basketball), try the English word with *v/f/z*.
 - **The *mukha kang ___* construction:** *mukha kang* ("you look like a"), *mukhang* ("looks like") and *parang* set up comparisons and roasts (*"mukha kang ano… mukhang talong"*). Whisper and captions both drop the *k* in *kang*. If a line reads *mukha ang/ano*, check for *mukha kang*.
 - **Domain jargon:** names of haircuts (*burst fade*, *V-cut*, *taper*, *undercut*), brands and game terms are mostly English and outside Whisper's Tagalog vocabulary. Guess the domain from the scene first, then match against its jargon.
+- **Filipino dish names:** Whisper bends them into English or other words (*English plan* ← *leche flan*). In any cooking or food scene, test garbled nouns against common dishes: *leche flan, adobo, sinigang, tinola, kare-kare, kaldereta, menudo, afritada, pancit, lumpia, sisig, lechon, halo-halo, turon, puto, kutsinta, bibingka, ensaymada, champorado, arroz caldo*.
+- **The verb decides the marker (focus agreement):** *lagyan natin **ng** asukal* vs. *ilagay natin **ang** asukal*; *bilhan mo **ng*** vs. *bilhin mo **ang***. Pick the verb that matches the syllables first, then make the marker agree with it. A mismatch (*ilagay … ng*, *lagyan … ang*) means one of the two was misheard.
 - **Prefer the closest sound match over the most dramatic reading:** Choose the candidate that needs the fewest sound changes. *Bulihin* → *Huhulihin* keeps *-ulihin* intact, while *Babarilin* would change most of the word. Do not let the scene's theme (e.g., soldier → "shoot") pull you toward a more violent or sensational verb.
 - **Split affixes:** "nag drive", "i send", "mag pa deliver" → *nag-drive*, *i-send*, *magpa-deliver*. Reattach the affix to the English root with a hyphen.
 - **English nouns made into Tagalog verbs:** Taglish turns English nouns into verbs with *nag-/mag-* plus a repeated first syllable (*nag-na-napkin*, *nagfe-Facebook*, *magla-laptop*). Whisper mangles the English part (*nagnanapten*). Strip the affix and the repeated syllable, then match what's left to an English noun that fits the topic.
