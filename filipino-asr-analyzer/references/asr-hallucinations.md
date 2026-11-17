@@ -47,6 +47,11 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 | Walang bayat | *Walang bayad* | final *d* → *t* | 2026-11-16-04 |
 | kupit | *gupit* | g→k devoicing (like *suntalo* → *sundalo*) | 2026-11-16-04 |
 | great ka ba / Ganit ka ba | *Galit ka ba?* | *l* misheard; English mode bends the word into *great* | 2026-11-16-04 |
+| Mersfade | *burst fade* | English haircut term outside Whisper's Tagalog vocabulary; English mode gave *Mercedes-Benz* | 2026-11-16-05 |
+| Bicap | *V-cut* | Filipino v→b pronunciation ("bi-cut"); English mode gave *B-Cup* | 2026-11-16-05 |
+| ba rin tayo? | *pa rin 'to, 'ya?* | b/p confusion; clipped *'ya* (*kuya*) fused with *'to* | 2026-11-16-05 |
+| kasi nga lang | *kaso nga lang* | *kaso* ("but") misheard as *kasi* ("because") | 2026-11-16-05 |
+| Pag-antayan kasi sa mukha ano | *Maganda 'yan kesa sa mukha kang ano…* | the opening was lost; the fan caption also misheard *kang* as *ANG* | 2026-11-16-05 |
 
 ## Shouted Commands and Interjections
 
@@ -62,6 +67,7 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 - **Collapsed reduplication (future and progressive aspect):** Tagalog repeats the first syllable of the root for the future (*hu-hulihin*, *ba-barilin*, and on English words too: *i-da-drug test*), the ongoing tense after *nag-/mag-/um-* (*nag-do-droga*, *nag-a-update*, *ka-kain*), and causatives with *pa-* (*pag-pa-pa-init*, *magpapainit*). ASR often merges the repeated syllable into one, sometimes with a changed consonant (*Bulihin* ← *Huhulihin*, *nag-drog* ← *nagdodroga*). If a verb root looks oddly short or starts with a strange consonant, try putting the reduplicated syllable back.
 - **Address terms:** *kuya*, *ate*, *boss*, *sir*, *pare* often open or close a question (*"Kuya, … ka ba, kuya?"*). Whisper turns *kuya* into *kaya*. A *kaya* at the start or end of a question is usually *kuya*. The term is also clipped to *'ya* (*kuya*) or *'te* (*ate*) and fused with the word before it (*"'to, 'ya?"* → *tayo*).
 - **Filipino accent on English loanwords (v→b, f→p, z→s):** many speakers say English *v* as *b* and *f* as *p*, and Whisper spells what it hears. *Bicap* is *V-cut* (said "bi-cut"), and *Mersfade* is *burst fade*. When a garbled word has *b/p/s* in it and the topic is English-heavy (haircuts, gadgets, food, basketball), try the English word with *v/f/z*.
+- **The *mukha kang ___* construction:** *mukha kang* ("you look like a"), *mukhang* ("looks like") and *parang* set up comparisons and roasts (*"mukha kang ano… mukhang talong"*). Whisper and captions both drop the *k* in *kang*. If a line reads *mukha ang/ano*, check for *mukha kang*.
 - **Domain jargon:** names of haircuts (*burst fade*, *V-cut*, *taper*, *undercut*), brands and game terms are mostly English and outside Whisper's Tagalog vocabulary. Guess the domain from the scene first, then match against its jargon.
 - **Prefer the closest sound match over the most dramatic reading:** Choose the candidate that needs the fewest sound changes. *Bulihin* → *Huhulihin* keeps *-ulihin* intact, while *Babarilin* would change most of the word. Do not let the scene's theme (e.g., soldier → "shoot") pull you toward a more violent or sensational verb.
 - **Split affixes:** "nag drive", "i send", "mag pa deliver" → *nag-drive*, *i-send*, *magpa-deliver*. Reattach the affix to the English root with a hyphen.
