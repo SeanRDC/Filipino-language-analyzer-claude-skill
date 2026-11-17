@@ -79,6 +79,10 @@ def main() -> None:
     p.add_argument("--vad", action="store_true",
                    help="enable voice-activity filtering (faster on long, quiet media, but drops short "
                         "interjections and commands like 'Ay!' or 'Attention!')")
+    p.add_argument("--skip-quiet", action="store_true",
+                   help="let Whisper drop 30-second windows it judges to be silence (its stock "
+                        "behavior). Off by default: on noisy Tagalog speech it threw away whole "
+                        "windows of real dialogue")
     args = p.parse_args()
 
     if args.model.endswith(".en"):
@@ -110,6 +114,8 @@ def main() -> None:
         # Tuned on session 2026-11-16-01: with VAD + conditioning on previous text, Whisper
         # looped on earlier lines ("Suntalo!" x3) and skipped short cues. Turning both off
         # recovered them; word timestamps give tighter segment boundaries for dubbing.
+        # Session 2026-11-16-04: Whisper scored the first 30 s window as no-speech (0.72 > 0.6)
+        # and dropped ~20 lines of real dialogue, so the no-speech skip is off unless asked for.
         segments, info = model.transcribe(
             audio,
             language=language,
@@ -117,6 +123,7 @@ def main() -> None:
             vad_filter=args.vad,
             condition_on_previous_text=False,
             word_timestamps=True,
+            no_speech_threshold=0.6 if args.skip_quiet else None,
         )
 
         lines = [
