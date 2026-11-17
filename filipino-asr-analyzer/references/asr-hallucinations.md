@@ -62,6 +62,7 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 - **Translation instead of transcription.** Even with `language=tl`, Whisper sometimes writes an English **translation** of a Tagalog line (*"What is CBDC?"* for *"Ano 'yung CBD?"*). Suspect this when a short English line sits inside a Tagalog exchange, especially a question or reply, and the speaker otherwise talks in Tagalog. If on-screen captions exist, check against them. Otherwise rebuild the likely Tagalog form and mark it low confidence.
 - **Acronym drift.** Whisper changes an acronym into a better-known one (*CBD* → *CBDC*). Check acronyms against the scene (drugs, banking, school) before accepting them.
 - **Dropped short words around English terms.** Short Tagalog words (*ka*, *siya*, *eh*, *po*, the linker *-ng*) vanish next to English words and acronyms (*"CBD siya, eh"* → *"CBDC."*). If a line is just a bare English term, the Tagalog around it was probably lost. Flag it for review instead of treating it as complete.
+- **Clip edges are cut.** Memes, duets and screen recordings often start or end mid-word. A leading fragment (*uto* ← *[lu]to*/*[i]to*) or a trailing extra syllable (*kutsahar* ← *kutsara*) is an edit artifact. Mark it as cut (*"…to sa ating…"*) instead of inventing a whole word from it.
 - **Short cues may be out of order.** When interjections are under one second long and talk overlaps, Whisper's timestamps can swap their order. Do not treat the cue order as certain.
 
 ## Structural Patterns
