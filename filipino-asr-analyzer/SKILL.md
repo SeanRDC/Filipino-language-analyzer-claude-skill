@@ -1,6 +1,6 @@
 ---
 name: filipino-asr-analyzer
-description: Transcribes, cleans, interprets, and localizes noisy Tagalog/Filipino speech. Use when the user gives Tagalog or Taglish audio/video (including noisy, near-inaudible meme, TikTok, livestream, or news clips) or messy ASR text, or asks to analyze conversational Filipino or prepare it for dubbing and fluent playback.
+description: Transcribes, cleans, interprets, and localizes noisy Tagalog/Filipino speech, and recognizes Bisaya/Cebuano. Use when the user gives Tagalog, Taglish or Bisaya audio/video (including noisy, near-inaudible meme, TikTok, livestream, or news clips) or messy ASR text, or asks to analyze conversational Filipino or prepare it for dubbing and fluent playback.
 ---
 # Filipino ASR Analyzer & Dubbing Engine
 
@@ -23,6 +23,7 @@ Lean on **modern conversational Tagalog** (Manila-style Taglish) by default. Dee
 *   [references/asr-hallucinations.md](references/asr-hallucinations.md): verified Whisper mishearings of Tagalog, plus sound and structure patterns (Step 1).
 *   [references/slang-glossary.md](references/slang-glossary.md): modern slang, reversed words and euphemisms (Steps 1–2).
 *   [references/register.md](references/register.md): deep → modern equivalents and spoken contractions (Steps 2–3).
+*   [references/bisaya-cebuano.md](references/bisaya-cebuano.md): spotting Cebuano, common words, false friends with Tagalog (Step 0b).
 
 ## Steps
 
@@ -41,15 +42,17 @@ python scripts/transcribe.py <file-or-url> --out <transcript.txt>
 
 **0b. Hard-audio routine.** When the audio is noisy, fast, overlapping or barely audible, or the transcript has gaps or gibberish, gather all of this before cleaning:
 
+0. **Identify the language first.** Not every Filipino clip is Tagalog. Check hashtags (*#bisaya*, *#bisdak*, *#ilocano*), captions and marker words (Cebuano: *kaayo*, *karon*, *unsa*, *dili*, *naa*, *gyud*). Whisper has no option for most Philippine languages, so `tl` is the closest setting, but its output will be spelled like Tagalog. Transcribe in the **speaker's** language, never "Tagalogized", and watch for words that look the same but mean different things in the two languages (Cebuano *kaayo* "very" ≠ Tagalog *kayo* "you"). For Cebuano, see [references/bisaya-cebuano.md](references/bisaya-cebuano.md). For other languages, say so, and flag the transcript for a native speaker.
 1. **Check for gaps.** If the transcript ends early or skips a stretch, test whether that stretch is really silent: `ffmpeg -i <media> -af silencedetect=n=-35dB:d=1 -f null -`. Sound with no transcript means missed speech, not silence.
 2. **Run it 2–3 times.** Gibberish, or words from an unrelated language (e.g., German *darauf* in a Tagalog clip), means Whisper fell back to random sampling, so each run differs. Line the runs up and trust only the words that recur.
-3. **Make one English pass** (`--language en`). Whisper *translates* instead of transcribing, and that English gloss tells you what a garbled line is about (*"I'm just a friend"* → *kaibigan ko*; *"every month"* → *buwan-buwan*). Use it for meaning only; its wording is never what was said **Exception:** for stretches spoken *in English* (move names, titles, English phrases), the English pass is a real transcription and beats both the `tl` spelling and your sense of what "should" be said (*window of eagle* → *wind of eagle*, not the more logical *wing*).
+3. **Make one English pass** (`--language en`). Whisper *translates* instead of transcribing, and that English gloss tells you what a garbled line is about (*"I'm just a friend"* → *kaibigan ko*; *"every month"* → *buwan-buwan*). Use it for meaning only; its wording is never what was said On sparse or quiet audio the English pass can invent stock lines (*"Thank you so much for watching, see you in the next video"*, *"Please subscribe"*); discard them. **Exception:** for stretches spoken *in English* (move names, titles, English phrases), the English pass is a real transcription and beats both the `tl` spelling and your sense of what "should" be said (*window of eagle* → *wind of eagle*, not the more logical *wing*).
 4. **Read the screen.** Pull frames (`ffmpeg -i <video> -vf fps=1 frames/%03d.jpg`, or crop and tile the caption band) and collect:
     *   **Broadcast subtitles** (TV news): close to ground truth. They expose translation leaks and acronym errors.
     *   **Fan captions** (TikTok/Reels/Shorts): evidence, not truth. They are split across frames and unpunctuated, so stitch them into sentences. Captioners mishear too (*"SA MUKHA ANG"* was *sa mukha kang*). When a caption breaks Tagalog grammar, trust the grammatical reading.
     *   **Post description, hashtags and the platform's search suggestion:** they often quote the key line (*"Burst fade parin to ya?"*, *"magluluto na original video"*, *"tatlong basong kutsara"*).
     *   **Livestream comments:** the speaker is answering them, which tells you who *kayo/n'yo* is and what was asked. Never transcribe comments as speech.
     *   **Scene:** setting, roles and props (police station, kitchen, interview with microphones) narrow the vocabulary.
+    *   Captions in parentheses (*"(korean cough)"*, *"(laughs)"*) describe sounds; write them as `[sound: …]`, not as speech.
     *   Overlay titles added by re-uploaders (*"mga taong mahilig sa yosi"*) are meme framing, not dialogue.
 
 ### 1. Reconstruct the Transcript (ASR Cleanup)
@@ -76,6 +79,7 @@ Work through the evidence in this order. The patterns behind each step, with ver
 *   Map informal slang, euphemisms or regionalisms (e.g., *charot*, *lodi*, *omsim*, *amats*, *dinadatnan*) to their semantic equivalents before formulating a response.
 
 ### 3. Localization & Dubbing Output (If generating spoken response)
+*   **Ask which language to dub into** when the source isn't Tagalog (e.g., keep Bisaya or convert to Tagalog). Don't assume.
 *   **Match Cadence:** Literal translations sound overly formal and robotic in Tagalog. Translate the *intent*, not the literal words.
 *   **Use Conversational Taglish:** Where natural to a native speaker in an everyday setting, keep standard English loanwords rather than forcing purist coinages (e.g., use "airplane" or *eroplano* instead of *salipawpaw*).
 *   **Syllable Pacing:** If the output is for dubbing, keep sentence length and syllable count as close to the source audio timing as possible. Use contractions (e.g., *'yung* instead of *iyong*, *sa'yo* instead of *sa iyo*) to speed up the sentence.
