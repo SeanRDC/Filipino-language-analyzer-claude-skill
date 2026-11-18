@@ -52,6 +52,11 @@ python scripts/transcribe.py <file-or-url> --out <transcript.txt>
     *   a cue covers far more time than its words could fill (a short line on a long cue means speech was lost);
     *   a line starts abruptly with no opener in heated or fast talk;
     *   the runs disagree, or speakers overlap.
+
+    Window hygiene:
+    *   **Start at the switch.** At a narrator → film switch, start the window at or just after the switch, not padded back into the narration. A window that opens on the narrator often returns the narrator's last words and then nothing for 20 s or more.
+    *   **Loops mean a bad window.** If a window repeats one phrase five or more times (*I'm sorry* ×13, *Ayawad na* ×25) or its timestamps run backwards, discard it. Re-run it as a 5–10 s window, or with `--device cpu`. Greedy GPU decoding loops most over music beds and shouting.
+    *   **Timing comes from the full runs.** Window timestamps can drift 2–4 s. Use them for words only.
 4. **Make one English pass** (`--language en`). Whisper *translates* instead of transcribing, and that English gloss tells you what a garbled line is about (*"I'm just a friend"* → *kaibigan ko*; *"every month"* → *buwan-buwan*). Use it for meaning only; its wording is never what was said, and it can even flip the meaning (*muntik nang magpakamatay*, "almost killed himself", came out as *"why Mark died"*). When the sound and the gloss disagree, trust the sound. The English pass also silently skips long emotional Tagalog stretches, so a gap in it is not silence. On sparse or quiet audio the English pass can invent stock lines (*"Thank you so much for watching, see you in the next video"*, *"Please subscribe"*); discard them. **Exception:** for stretches spoken *in English* (move names, titles, English phrases), the English pass is a real transcription and beats both the `tl` spelling and your sense of what "should" be said (*window of eagle* → *wind of eagle*, not the more logical *wing*).
 5. **Read the screen.** Pull frames (`ffmpeg -i <video> -vf fps=1 frames/%03d.jpg`, or crop and tile the caption band) and collect:
     *   **Broadcast subtitles** (TV news): close to ground truth. They expose translation leaks and acronym errors.
