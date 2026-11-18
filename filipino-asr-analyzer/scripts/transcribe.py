@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -214,11 +215,34 @@ def openvino_decoder(model_name: str, device: str, language):
     return decode
 
 
-def transcribe_windows(decode, audio, window: float, overlap: float = 5.0):
+def looks_looping(cues) -> bool:
+    """True when a window's cues look like a decoding loop rather than speech.
+
+    Greedy GPU decoding loops over music beds and shouting ("I'm sorry" x14 over an action
+    scene, blind test 2026-11-18): one text repeated three or more times and making up at
+    least half the cues, or cue times that run backwards.
+    """
+    if any(b < a for a, b, _ in cues):
+        return True
+    texts = [re.sub(r"\W+", " ", t).strip().lower() for _, _, t in cues]
+    texts = [t for t in texts if t]
+    if len(texts) < 3:
+        return False
+    top = max(texts.count(t) for t in set(texts))
+    return top >= 3 and top * 2 >= len(texts)
+
+
+NON_LATIN = re.compile(r"[Ͱ-ϿЀ-ӿ֐-ۿ฀-๿぀-ヿ一-鿿가-힯]")
+
+
+def transcribe_windows(decode, audio, window: float, overlap: float = 5.0, fallback=None,
+                       report=None):
     """Decode in overlapping windows, keeping each cue from the window where it sits centrally.
 
     Whisper sees every stretch away from a window edge, so lines cut by an edge in one
     window are whole in the next. Cue times are relative to the start of `audio`.
+    `fallback()` returns a second decoder; a window whose cues loop is decoded again with it,
+    and its start time is appended to `report`.
     """
     total = len(audio) / SR
     step = max(window - overlap, 1.0)
@@ -234,7 +258,12 @@ def transcribe_windows(decode, audio, window: float, overlap: float = 5.0):
         keep_from = 0.0 if i == 0 else s + overlap / 2
         keep_to = total if i == len(starts) - 1 else e - overlap / 2
         chunk = audio[int(s * SR):int(e * SR)]
-        for a, b, text in decode(chunk):
+        cues = list(decode(chunk))
+        if fallback is not None and looks_looping(cues):
+            cues = list(fallback()(chunk))
+            if report is not None:
+                report.append(s)
+        for a, b, text in cues:
             mid = s + (a + b) / 2
             if keep_from <= mid < keep_to:
                 out.append((s + a, s + b, text))
@@ -281,6 +310,8 @@ def main() -> None:
                         "less heat and fan noise)")
     p.add_argument("--priority", default="low", choices=["low", "normal"],
                    help="process priority (default: low, so other apps stay responsive)")
+    p.add_argument("--no-loop-fallback", action="store_true",
+                   help="on gpu/npu, do not re-decode looping 30 s windows on the CPU (beam search)")
     args = p.parse_args()
 
     if not 0.5 <= args.slow <= 1.0:
@@ -303,10 +334,21 @@ def main() -> None:
 
         print(f"Loading model '{args.model}' on {device}...", file=sys.stderr)
         language = None if args.language == "auto" else args.language
+        fallback = None
         if device in ("gpu", "npu"):
             decode = openvino_decoder(args.model, device.upper(), language)
             window = args.window or 30.0  # its long-form mode dropped the last 10 s of a clip
             decoder_note = f"openvino {device.upper()} fp16, greedy"
+            if not args.no_loop_fallback:
+                cpu = []  # load the CPU model only if a window actually loops
+
+                def fallback():
+                    if not cpu:
+                        print("Loop detected: re-decoding on cpu (beam 5)...", file=sys.stderr)
+                        cpu.append(faster_whisper_decoder(args.model, "cpu", language, args.threads,
+                                                          args.vad, args.skip_quiet))
+                    return cpu[0]
+                decoder_note += ", looping windows re-decoded on cpu"
         else:
             decode = faster_whisper_decoder(args.model, device, language, args.threads, args.vad,
                                             args.skip_quiet)
@@ -323,7 +365,9 @@ def main() -> None:
         def real(t: float) -> float:  # map a time in the (cut, slowed) audio back to the source
             return offset + t * args.slow
 
-        segments = transcribe_windows(decode, audio, window) if window else decode(audio)
+        redone = []
+        segments = (transcribe_windows(decode, audio, window, fallback=fallback, report=redone)
+                    if window else decode(audio))
 
         lines = [
             f"# source: {args.source}",
@@ -340,12 +384,15 @@ def main() -> None:
         # Session 2026-11-17-04: all three runs skipped 00:22-00:30 (dialogue right after the
         # narrator) and the start of the next line. Report every gap so it gets re-run alone.
         gaps = []
+        odd = []
         prev_end = offset
         for seg_start, seg_end, text in segments:  # may be a generator: decoding happens here
             start, end = real(seg_start), real(seg_end)
             if args.gap and start - prev_end >= args.gap:
                 gaps.append((prev_end, start))
             prev_end = max(prev_end, end)
+            if NON_LATIN.search(text):
+                odd.append((start, text))
             line = text if args.no_timestamps else f"[{fmt_time(start)} -> {fmt_time(end)}] {text}"
             lines.append(line)
             print(line, flush=True)
@@ -356,6 +403,18 @@ def main() -> None:
                           "it alone with --start/--end"]
             lines += [f"# gap {fmt_time(a)} -> {fmt_time(b)} ({b - a:.0f}s)" for a, b in gaps]
             for line in lines[-len(gaps) - 1:]:
+                print(line, file=sys.stderr)
+
+        notes = []
+        if redone:  # blind test 2026-11-18: greedy GPU decoding looped in 9 of 10 drama clips
+            notes.append("# loop guard: windows re-decoded on cpu at "
+                         + ", ".join(fmt_time(real(t)) for t in redone))
+        if odd:  # the CPU decoder sometimes emits Greek/Cyrillic letters in Tagalog
+            notes.append("# non-Latin script in a cue (likely hallucination): "
+                         + ", ".join(fmt_time(t) for t, _ in odd))
+        if notes:
+            lines += [""] + notes
+            for line in notes:
                 print(line, file=sys.stderr)
 
     if args.out:
