@@ -6,9 +6,17 @@ Accepts a local media file or a URL (YouTube and other sites supported by yt-dlp
 
 Usage:
     python transcribe.py <file-or-url> [--model small] [--language tl] [--out transcript.txt]
+    python transcribe.py <file> --start 1:20 --end 1:50 --slow 0.75   # zoom on a hard stretch
+    python transcribe.py <file> --device cpu --window 30              # second opinion on the CPU
+
+Devices (--device auto picks the first available):
+    cuda  NVIDIA GPU, faster-whisper, beam search
+    gpu   Intel Arc GPU via OpenVINO (pip install openvino-genai), greedy, 30 s windows
+    cpu   faster-whisper int8, beam search, half the cores by default
+On the CPU the process runs at low priority unless --priority normal.
 
 Requirements:
-    pip install faster-whisper
+    pip install faster-whisper   (plus openvino-genai for Intel GPUs)
     yt-dlp on PATH (only needed for URLs)
     ffmpeg on PATH (recommended)
 """
@@ -16,10 +24,12 @@ Requirements:
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -81,11 +91,161 @@ def load_audio(media: Path, start: float | None = None, end: float | None = None
     return np.frombuffer(result.stdout, np.int16).astype(np.float32) / 32768.0
 
 
+SR = 16000
+
+
+def lower_priority(level: str) -> None:
+    """Run below normal priority so a long transcription doesn't hog the machine.
+
+    Only scheduling changes; the transcript is identical.
+    """
+    if level != "low":
+        return
+    try:
+        if sys.platform == "win32":
+            import ctypes
+            BELOW_NORMAL_PRIORITY_CLASS = 0x4000
+            k32 = ctypes.windll.kernel32
+            k32.SetPriorityClass(k32.GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS)
+        else:
+            os.nice(10)
+    except Exception:
+        pass  # best effort
+
+
+def openvino_devices() -> list[str]:
+    try:
+        import openvino as ov
+        return list(ov.Core().available_devices)
+    except Exception:
+        return []
+
+
+def pick_device(requested: str) -> str:
+    """auto: NVIDIA GPU (CUDA) > Intel GPU (OpenVINO) > CPU."""
+    if requested != "auto":
+        if requested in ("gpu", "npu") and requested.upper() not in openvino_devices():
+            sys.exit(f"error: no OpenVINO {requested.upper()} found (pip install openvino-genai; "
+                     "needs an Intel GPU/NPU with current drivers)")
+        return requested
+    try:
+        import ctranslate2
+        if ctranslate2.get_cuda_device_count() > 0:
+            return "cuda"
+    except ImportError:
+        pass
+    if "GPU" in openvino_devices():
+        try:
+            import openvino_genai  # noqa: F401
+            return "gpu"
+        except ImportError:
+            pass
+    return "cpu"
+
+
+def faster_whisper_decoder(model_name: str, device: str, language, threads: int, vad: bool,
+                           skip_quiet: bool):
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        sys.exit("error: faster-whisper is not installed; run: pip install faster-whisper")
+    model = WhisperModel(model_name, device=device,
+                         compute_type="float16" if device == "cuda" else "int8",
+                         cpu_threads=threads if device == "cpu" else 0)
+
+    def decode(audio):
+        # Tuned on session 2026-11-16-01: with VAD + conditioning on previous text, Whisper
+        # looped on earlier lines ("Suntalo!" x3) and skipped short cues. Turning both off
+        # recovered them; word timestamps give tighter segment boundaries for dubbing.
+        # Session 2026-11-16-04: Whisper scored the first 30 s window as no-speech (0.72 > 0.6)
+        # and dropped ~20 lines of real dialogue, so the no-speech skip is off unless asked for.
+        segments, _ = model.transcribe(
+            audio,
+            language=language,
+            beam_size=5,
+            vad_filter=vad,
+            condition_on_previous_text=False,
+            word_timestamps=True,
+            no_speech_threshold=0.6 if skip_quiet else None,
+        )
+        for s in segments:
+            yield s.start, s.end, s.text.strip()
+
+    return decode
+
+
+def openvino_model_path(model_name: str) -> str:
+    """Pre-converted fp16 Whisper from the OpenVINO org on Hugging Face (same weights as Whisper)."""
+    from huggingface_hub import snapshot_download
+    repo = f"OpenVINO/whisper-{model_name}-fp16-ov"
+    try:
+        return snapshot_download(repo, local_files_only=True)
+    except Exception:
+        pass
+    last = None
+    for _ in range(10):  # the Hub connection drops intermittently on some networks
+        try:
+            return snapshot_download(repo)
+        except Exception as exc:
+            last = exc
+            time.sleep(2)
+    sys.exit(f"error: could not download {repo}: {last}")
+
+
+def openvino_decoder(model_name: str, device: str, language):
+    try:
+        import openvino_genai
+    except ImportError:
+        sys.exit("error: openvino-genai is not installed; run: pip install openvino-genai")
+    pipe = openvino_genai.WhisperPipeline(openvino_model_path(model_name), device)
+    cfg = pipe.get_generation_config()
+    if language:
+        cfg.language = f"<|{language}|>"
+    cfg.task = "transcribe"
+    cfg.return_timestamps = True
+    cfg.num_beams = 1  # beam search is not implemented for Whisper on the Intel GPU
+
+    def decode(audio):
+        result = pipe.generate(audio.tolist(), cfg)
+        for c in result.chunks or []:
+            if c.text.strip():
+                yield c.start_ts, c.end_ts, c.text.strip()
+
+    return decode
+
+
+def transcribe_windows(decode, audio, window: float, overlap: float = 5.0):
+    """Decode in overlapping windows, keeping each cue from the window where it sits centrally.
+
+    Whisper sees every stretch away from a window edge, so lines cut by an edge in one
+    window are whole in the next. Cue times are relative to the start of `audio`.
+    """
+    total = len(audio) / SR
+    step = max(window - overlap, 1.0)
+    starts, s = [], 0.0
+    while True:
+        starts.append(s)
+        if s + window >= total:
+            break
+        s += step
+    out = []
+    for i, s in enumerate(starts):
+        e = min(s + window, total)
+        keep_from = 0.0 if i == 0 else s + overlap / 2
+        keep_to = total if i == len(starts) - 1 else e - overlap / 2
+        chunk = audio[int(s * SR):int(e * SR)]
+        for a, b, text in decode(chunk):
+            mid = s + (a + b) / 2
+            if keep_from <= mid < keep_to:
+                out.append((s + a, s + b, text))
+    return out
+
+
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")  # keep Tagalog diacritics intact on Windows consoles
 
-    p = argparse.ArgumentParser(description="Raw Tagalog/Taglish transcription with faster-whisper.")
+    p = argparse.ArgumentParser(description="Raw Tagalog/Taglish transcription (faster-whisper on CPU/CUDA, OpenVINO on Intel GPU/NPU).")
     p.add_argument("source", help="local audio/video file or URL")
     p.add_argument("--model", default="small",
                    help="Whisper model: tiny, base, small, medium, large-v3 (default: small). "
@@ -110,6 +270,17 @@ def main() -> None:
                         "with rapid-fire lines; timestamps are mapped back to the original timing")
     p.add_argument("--gap", type=float, default=2.0,
                    help="report silences between cues longer than this many seconds (default 2; 0 = off)")
+    p.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "gpu", "npu"],
+                   help="auto (default): NVIDIA GPU, else Intel GPU via OpenVINO, else CPU. 'gpu'/'npu' "
+                        "use OpenVINO (Intel Arc / AI Boost); 'cpu' uses faster-whisper with beam search")
+    p.add_argument("--window", type=float, default=0.0,
+                   help="decode in overlapping windows of this many seconds (e.g. 30) instead of one "
+                        "long pass; this is the zoom pass from SKILL.md 0b. Always 30 on gpu/npu")
+    p.add_argument("--threads", type=int, default=max(1, (os.cpu_count() or 2) // 2),
+                   help="CPU threads for --device cpu (default: half the cores; same transcript, "
+                        "less heat and fan noise)")
+    p.add_argument("--priority", default="low", choices=["low", "normal"],
+                   help="process priority (default: low, so other apps stay responsive)")
     args = p.parse_args()
 
     if not 0.5 <= args.slow <= 1.0:
@@ -118,10 +289,8 @@ def main() -> None:
     if args.model.endswith(".en"):
         sys.exit("error: English-only models (*.en) cannot transcribe Tagalog; use e.g. --model small")
 
-    try:
-        from faster_whisper import WhisperModel
-    except ImportError:
-        sys.exit("error: faster-whisper is not installed; run: pip install faster-whisper")
+    lower_priority(args.priority)
+    device = pick_device(args.device)
 
     with tempfile.TemporaryDirectory() as tmp:
         if args.source.startswith(("http://", "https://")):
@@ -132,39 +301,35 @@ def main() -> None:
             if not media.is_file():
                 sys.exit(f"error: file not found: {media}")
 
-        print(f"Loading model '{args.model}' (first run downloads it)...", file=sys.stderr)
-        import ctranslate2
-
-        on_gpu = ctranslate2.get_cuda_device_count() > 0
-        model = WhisperModel(args.model, device="cuda" if on_gpu else "cpu",
-                             compute_type="float16" if on_gpu else "int8")
-
+        print(f"Loading model '{args.model}' on {device}...", file=sys.stderr)
         language = None if args.language == "auto" else args.language
+        if device in ("gpu", "npu"):
+            decode = openvino_decoder(args.model, device.upper(), language)
+            window = args.window or 30.0  # its long-form mode dropped the last 10 s of a clip
+            decoder_note = f"openvino {device.upper()} fp16, greedy"
+        else:
+            decode = faster_whisper_decoder(args.model, device, language, args.threads, args.vad,
+                                            args.skip_quiet)
+            window = args.window
+            decoder_note = (f"faster-whisper {device}, beam 5"
+                            + (f", {args.threads} threads" if device == "cpu" else ""))
+
         audio = load_audio(media, args.start, args.end, args.slow)
+        if isinstance(audio, str):
+            sys.exit("error: ffmpeg is required on PATH")
         offset = args.start or 0.0
+        total = len(audio) / SR
 
         def real(t: float) -> float:  # map a time in the (cut, slowed) audio back to the source
             return offset + t * args.slow
 
-        # Tuned on session 2026-11-16-01: with VAD + conditioning on previous text, Whisper
-        # looped on earlier lines ("Suntalo!" x3) and skipped short cues. Turning both off
-        # recovered them; word timestamps give tighter segment boundaries for dubbing.
-        # Session 2026-11-16-04: Whisper scored the first 30 s window as no-speech (0.72 > 0.6)
-        # and dropped ~20 lines of real dialogue, so the no-speech skip is off unless asked for.
-        segments, info = model.transcribe(
-            audio,
-            language=language,
-            beam_size=5,
-            vad_filter=args.vad,
-            condition_on_previous_text=False,
-            word_timestamps=True,
-            no_speech_threshold=0.6 if args.skip_quiet else None,
-        )
+        segments = transcribe_windows(decode, audio, window) if window else decode(audio)
 
         lines = [
             f"# source: {args.source}",
-            f"# model: {args.model} | language: {info.language} ({info.language_probability:.2f}) "
-            f"| duration: {fmt_time(info.duration * args.slow)}",
+            f"# model: {args.model} | language: {args.language} | decoder: {decoder_note}"
+            + (f" | windows: {window:g}s" if window else "")
+            + f" | duration: {fmt_time(total * args.slow)}",
         ]
         if args.start is not None or args.end is not None or args.slow != 1.0:
             lines.append(f"# window: {fmt_time(offset)} -> "
@@ -176,15 +341,16 @@ def main() -> None:
         # narrator) and the start of the next line. Report every gap so it gets re-run alone.
         gaps = []
         prev_end = offset
-        for seg in segments:  # generator: transcription happens while iterating
-            start, end = real(seg.start), real(seg.end)
+        for seg_start, seg_end, text in segments:  # may be a generator: decoding happens here
+            start, end = real(seg_start), real(seg_end)
             if args.gap and start - prev_end >= args.gap:
                 gaps.append((prev_end, start))
             prev_end = max(prev_end, end)
-            text = seg.text.strip()
             line = text if args.no_timestamps else f"[{fmt_time(start)} -> {fmt_time(end)}] {text}"
             lines.append(line)
             print(line, flush=True)
+        if args.gap and real(total) - prev_end >= args.gap:  # speech lost at the very end
+            gaps.append((prev_end, real(total)))
         if gaps:
             lines += ["", f"# gaps of {args.gap:g}s+ with no cue: check each (silencedetect) or re-run "
                           "it alone with --start/--end"]
