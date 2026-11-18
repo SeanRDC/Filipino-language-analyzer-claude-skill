@@ -6,7 +6,9 @@ Env HYPSKIP="22-30,..." drops output rows whose start second is in [a,b) (stretc
 import re, sys, unicodedata
 def secs(t): m,s=t.split(':')[:2]; return int(m)*60+int(s)
 def norm(s):
-    s=unicodedata.normalize('NFKC',s).lower()
+    import html
+    s=html.unescape(unicodedata.normalize('NFKC',s)).lower()
+    s=re.sub(r'</?i>','',s)
     s=re.sub(r'\([^)]*\)|\[[^\]]*\]','',s)            # stage notes
     s=re.sub(r'(^|/)\s*[a-z]{1,8}:\s',r'\1 ',s)         # speaker labels
     s=s.replace('’',"'").replace('-','')
@@ -14,7 +16,7 @@ def norm(s):
     s=re.sub(r'[^a-z0-9ñ ]+',' ',s)
     w=s.split()
     alias={'noong':'nung','ganoon':'ganun','ganon':'ganun','diyan':'dyan','nandiyan':'nandyan','niya':'nya','siya':'sya','ito':'to','iyon':'yon','yun':'yon','ako':'ko','okay':'ok'}
-    alias.update({'nun':'nung','noon':'nung','noong':'nung','don':'dun','doon':'dun','gano':'gaano','nasan':'nasaan','ingles':'english','inglesingles':'englishenglish','plastik':'plastic','kaagad':'agad','yung':'yon_','iyong':'yon_','yong':'yon_','e':'eh','non':'nung','nyan':'nyan'})
+    alias.update({'nun':'nung','noon':'nung','noong':'nung','don':'dun','doon':'dun','gano':'gaano','nasan':'nasaan','ingles':'english','inglesingles':'englishenglish','plastik':'plastic','kaagad':'agad','yung':'yon_','iyong':'yon_','yong':'yon_','e':'eh','non':'nung','nong':'nung','nandon':'nandun','nandoon':'nandun','eskuwelahan':'eskwelahan','nyan':'nyan'})
     w=[alias.get(x,x) for x in w]
     out=[]
     for x in w:
@@ -66,5 +68,5 @@ for lid,t,fx,r in ref:
     e=err.get(lid,0); L=len(norm(r)); n+=1; tw+=L; te+=e; ok+=e==0
     if fx: fn+=1; fok+=e==0
     if e: out.append(f"{lid} err={e}/{L}\n  REF: {r}\n  HYP: {' '.join(reversed(got.get(lid,[])))}")
-print(f"lines exact: {ok}/{n} = {ok/n:.0%} | Sean-fixed lines exact: {fok}/{fn} | word accuracy: {1-te/tw:.1%}")
+print(f"lines exact: {ok}/{n} = {ok/n:.0%} | Sean-fixed lines exact: {fok}/{fn} | word accuracy: {1-te/tw:.1%} | words={tw} errors={te}")
 print('\n'.join(out))
