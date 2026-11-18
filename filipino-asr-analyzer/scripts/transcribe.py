@@ -43,8 +43,17 @@ def download_audio(url: str, workdir: Path) -> Path:
     return files[0]
 
 
-def load_audio(media: Path):
-    """Decode to 16 kHz mono float32 with ffmpeg.
+def parse_time(value: str) -> float:
+    """Accept seconds ('83.5'), mm:ss ('1:23') or hh:mm:ss."""
+    secs = 0.0
+    for part in value.split(":"):
+        secs = secs * 60 + float(part)
+    return secs
+
+
+def load_audio(media: Path, start: float | None = None, end: float | None = None,
+               slow: float = 1.0):
+    """Decode to 16 kHz mono float32 with ffmpeg, optionally cut to a window and slowed down.
 
     Bypasses faster-whisper's PyAV decoder, which breaks with some PyAV releases
     (e.g. PyAV 19 removed the `metadata_errors` argument faster-whisper 1.2.x passes).
@@ -52,11 +61,20 @@ def load_audio(media: Path):
     """
     exe = shutil.which("ffmpeg")
     if not exe:
+        if start is not None or end is not None or slow != 1.0:
+            sys.exit("error: --start/--end/--slow need ffmpeg on PATH")
         return str(media)
     import numpy as np
 
-    cmd = [exe, "-nostdin", "-loglevel", "error", "-i", str(media),
-           "-f", "s16le", "-ac", "1", "-ar", "16000", "-"]
+    cmd = [exe, "-nostdin", "-loglevel", "error"]
+    if start is not None:
+        cmd += ["-ss", str(start)]
+    if end is not None:
+        cmd += ["-to", str(end)]
+    cmd += ["-i", str(media)]
+    if slow != 1.0:
+        cmd += ["-af", f"atempo={slow}"]  # pitch-preserving time stretch
+    cmd += ["-f", "s16le", "-ac", "1", "-ar", "16000", "-"]
     result = subprocess.run(cmd, capture_output=True)
     if result.returncode != 0:
         sys.exit(f"error: ffmpeg could not decode {media}:\n{result.stderr.decode(errors='replace')[-2000:]}")
@@ -83,7 +101,19 @@ def main() -> None:
                    help="let Whisper drop 30-second windows it judges to be silence (its stock "
                         "behavior). Off by default: on noisy Tagalog speech it threw away whole "
                         "windows of real dialogue")
+    p.add_argument("--start", type=parse_time,
+                   help="transcribe from this time (seconds or mm:ss). Re-run gaps and hard stretches "
+                        "on their own: Whisper often drops lines right after a speaker or language switch")
+    p.add_argument("--end", type=parse_time, help="transcribe up to this time (seconds or mm:ss)")
+    p.add_argument("--slow", type=float, default=1.0,
+                   help="play the audio at this speed before transcribing, 0.5-1.0 (e.g. 0.75). Helps "
+                        "with rapid-fire lines; timestamps are mapped back to the original timing")
+    p.add_argument("--gap", type=float, default=2.0,
+                   help="report silences between cues longer than this many seconds (default 2; 0 = off)")
     args = p.parse_args()
+
+    if not 0.5 <= args.slow <= 1.0:
+        sys.exit("error: --slow must be between 0.5 and 1.0")
 
     if args.model.endswith(".en"):
         sys.exit("error: English-only models (*.en) cannot transcribe Tagalog; use e.g. --model small")
@@ -110,7 +140,12 @@ def main() -> None:
                              compute_type="float16" if on_gpu else "int8")
 
         language = None if args.language == "auto" else args.language
-        audio = load_audio(media)
+        audio = load_audio(media, args.start, args.end, args.slow)
+        offset = args.start or 0.0
+
+        def real(t: float) -> float:  # map a time in the (cut, slowed) audio back to the source
+            return offset + t * args.slow
+
         # Tuned on session 2026-11-16-01: with VAD + conditioning on previous text, Whisper
         # looped on earlier lines ("Suntalo!" x3) and skipped short cues. Turning both off
         # recovered them; word timestamps give tighter segment boundaries for dubbing.
@@ -129,14 +164,33 @@ def main() -> None:
         lines = [
             f"# source: {args.source}",
             f"# model: {args.model} | language: {info.language} ({info.language_probability:.2f}) "
-            f"| duration: {fmt_time(info.duration)}",
-            "",
+            f"| duration: {fmt_time(info.duration * args.slow)}",
         ]
+        if args.start is not None or args.end is not None or args.slow != 1.0:
+            lines.append(f"# window: {fmt_time(offset)} -> "
+                         f"{fmt_time(args.end) if args.end is not None else 'end'} | slow: {args.slow}")
+        lines.append("")
+        for line in lines:
+            print(line, flush=True)
+        # Session 2026-11-17-04: all three runs skipped 00:22-00:30 (dialogue right after the
+        # narrator) and the start of the next line. Report every gap so it gets re-run alone.
+        gaps = []
+        prev_end = offset
         for seg in segments:  # generator: transcription happens while iterating
+            start, end = real(seg.start), real(seg.end)
+            if args.gap and start - prev_end >= args.gap:
+                gaps.append((prev_end, start))
+            prev_end = max(prev_end, end)
             text = seg.text.strip()
-            line = text if args.no_timestamps else f"[{fmt_time(seg.start)} -> {fmt_time(seg.end)}] {text}"
+            line = text if args.no_timestamps else f"[{fmt_time(start)} -> {fmt_time(end)}] {text}"
             lines.append(line)
             print(line, flush=True)
+        if gaps:
+            lines += ["", f"# gaps of {args.gap:g}s+ with no cue: check each (silencedetect) or re-run "
+                          "it alone with --start/--end"]
+            lines += [f"# gap {fmt_time(a)} -> {fmt_time(b)} ({b - a:.0f}s)" for a, b in gaps]
+            for line in lines[-len(gaps) - 1:]:
+                print(line, file=sys.stderr)
 
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
