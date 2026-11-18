@@ -14,7 +14,7 @@ def norm(s):
     s=re.sub(r'[^a-z0-9ñ ]+',' ',s)
     w=s.split()
     alias={'noong':'nung','ganoon':'ganun','ganon':'ganun','diyan':'dyan','nandiyan':'nandyan','niya':'nya','siya':'sya','ito':'to','iyon':'yon','yun':'yon','ako':'ko','okay':'ok'}
-    alias.update({'nun':'nung','noon':'nung','noong':'nung','don':'dun','doon':'dun','gano':'gaano','nasan':'nasaan','ingles':'english','inglesingles':'englishenglish','plastik':'plastic','kaagad':'agad','yung':'yon_','iyong':'yon_'})
+    alias.update({'nun':'nung','noon':'nung','noong':'nung','don':'dun','doon':'dun','gano':'gaano','nasan':'nasaan','ingles':'english','inglesingles':'englishenglish','plastik':'plastic','kaagad':'agad','yung':'yon_','iyong':'yon_','yong':'yon_','e':'eh','non':'nung','nyan':'nyan'})
     w=[alias.get(x,x) for x in w]
     out=[]
     for x in w:
