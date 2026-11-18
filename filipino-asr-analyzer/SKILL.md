@@ -35,10 +35,12 @@ Lean on **modern conversational Tagalog** (Manila-style Taglish) by default. Dee
 python scripts/transcribe.py <file-or-url> --out <transcript.txt>
 ```
 
+*   **Device and load.** `--device auto` (the default) uses an NVIDIA GPU if there is one, then an Intel Arc GPU through OpenVINO, then the CPU. On the Intel GPU, a 3-minute clip takes about 6 s instead of 35 s, and the CPU and fans stay idle. OpenVINO decodes greedily (Intel's GPU has no beam search) in 30 s windows, because its long-file mode dropped the end of a clip. On the CPU, the script uses half the cores and low priority by default. Same transcript, just slower and cooler.
+*   **Two decoders beat two identical runs.** For step 0b.2, make run 1 the default (GPU) run and run 2 `--device cpu --window 30` (beam search). Two faster-whisper CPU runs can come out word for word the same, so the second one adds nothing. A different decoder fails in different places. Run window and slow passes on the GPU: they are cheap there.
 *   Defaults: multilingual `small` model, language `tl`, VAD off, and Whisper's "this is silence" filter off. On noisy Tagalog speech, that filter threw away whole 30-second windows of real dialogue. Pass `--skip-quiet` only for long recordings with genuinely silent stretches. Use `--model medium` or `large-v3` for higher accuracy (slower on CPU).
 *   Never use English-only `*.en` models. **Do not add an `initial_prompt`.** In testing, a Taglish prompt leaked its own words into the transcript or made Whisper drop whole lines.
 *   Keep the raw output untouched and show it alongside your cleaned version, so the user can see every correction.
-*   The script ends with a list of **gaps** (2 s+ with no cue). `--start`/`--end` (seconds or `mm:ss`) transcribe one window, and `--slow 0.75` stretches the audio first; timestamps stay in source time. See 0b, steps 1 and 3.
+*   The script ends with a list of **gaps** (2 s+ with no cue, including a missing ending). `--start`/`--end` (seconds or `mm:ss`) transcribe one window, `--window 30` decodes the whole range in overlapping 30 s windows (the zoom pass), and `--slow 0.75` stretches the audio first; timestamps stay in source time. See 0b, steps 1 and 3.
 *   Requirements: `pip install -r scripts/requirements.txt`, plus `ffmpeg` on PATH.
 
 **0b. Hard-audio routine.** When the audio is noisy, fast, overlapping or barely audible, or the transcript has gaps or gibberish, gather all of this before cleaning:
