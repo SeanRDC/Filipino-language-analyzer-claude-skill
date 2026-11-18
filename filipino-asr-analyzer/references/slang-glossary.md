@@ -63,3 +63,16 @@ Fight scenes (teleseryes, films, vlogs) lean on a small set of idioms. When the 
 | *Mmm* (+ a statement) | — | sarcastic agreement in an argument (*Mmm, kaya ko rin, 'no?*) |
 | *Eh ikaw!* | well, you! | turning the accusation back; the *eh* is what makes it a retort |
 | *Awat na!* / *Tama na!* | stop the fight / enough | pleas from a third party or the weaker side; usually layered under someone else's shouting |
+
+## Curses and Exclamations
+
+Curses are common in memes and fights, and they are often the joke. Transcribe them verbatim. The same speaker often switches between variants in one outburst (*Tangina naman! … Ampota!*), so a second garbled burst is not automatically a copy of the first.
+
+| Term | Notes |
+|---|---|
+| *putangina* / *tangina* / *tang ina* | the most common curse; Whisper writes *Tanginala*, *Tangi na lang*, *Pag-tangin*, *muntang* |
+| *puta* / *pota* / *ampota* / *amputa* | short forms (*ampota* ← *ang puta*); often the last, loudest word of an outburst |
+| *putcha* / *putek* / *pucha* | softened (minced) forms |
+| *punyeta*, *leche* / *letse*, *lintik* | exasperation |
+| *gago* / *gaga*, *ulol* / *ulul*, *tarantado*, *bwisit*, *hayop* | insults aimed at a person |
+| *mura* / *magmura* / *minura* | "a curse" / "to curse". *Mura pa!* ("curse some more") is a sarcastic reply that confirms the line before it held a curse. *Mura* also means "cheap", so decide by context |
