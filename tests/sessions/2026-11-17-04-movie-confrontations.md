@@ -213,5 +213,16 @@ A countdown of iconic Filipino-film fights. Every scene's emotional peak is a **
 - Famous scenes: recalled movie quotes are evidence (medium), never ground truth.
 
 ## Review
-- Reviewer verdict: _pending_
-- Highest-value checks: the One More Chance bar fight (10:13–11:24), *Anak* 12:51 and 13:14, Barcelona 04:02–04:15, the *My Ex and Whys* hashtag.
+- Reviewer verdict (2026-11-18): about 85 of 140 lines right. Fixes and notes on about 55, filled in on a per-line sheet (`README-corrections-movie-confrontations.md`).
+- **Main failure: over-correction.** In about half the fixes, the raw `tl` syllables were closer to the truth than the cleanup (*Ako ba*, *pinasukan*, *kating*, *naging*, *mga aga* = *mang-aagaw*, *sumang utka* = *sumagot ka*). The cleanup chose sensible-sounding sentences over the sound.
+- **Missed speech:** 00:22–00:30 (four lines right after the narrator) was missing from all three full runs, and the long shouting at 11:05–11:20 was reduced to *Ay, tama na!*. Window re-runs (`--start/--end`, `--slow 0.75`) recovered both. Verified with the new script options.
+- **Dropped openers and particles** on 11 lines (*Ke, isa*, *O ano*, *Eh*, *nga*, *na*, *lang*, *mas*, *pa rin*). Contractions were wrongly expanded (*ba ko*, *'di*).
+- **Overlap:** a second speaker was folded into the main line at 03:28, 05:14 and 09:25.
+- Other notes: *dy/ty* said as *j/ch* (*sinadya*, *tiyan*); aspect from context (*bumuo/naging*, *iniisip*); *hugot* translated away; *responsibilidad*; character nickname *Bash*.
+
+## Skill Fixes Made (from review)
+- `transcribe.py`: `--start/--end` windows, `--slow` time stretch, gap report.
+- SKILL.md 0b: re-run every gap alone; zoom on hard stretches (normal + slow); separate speakers; remembered quotes may only choose between readings that fit the sound; character nicknames.
+- SKILL.md step 1: raw-first decoding plus a final line audit against the raw; rhetorical templates stay within one speaker's run (the cross-scene *aminin* example was wrong and has been replaced); parallel halves; aspect and pronoun checks; openers and particles; don't add particles; keep short forms, intensifier reduplication and Spanish-derived forms; keep Tagalog loanwords in English narration; restore whole English idioms.
+- asr-hallucinations.md: 22 verified rows; a table of how Tagalog sounds vs. how it is spelled (*dy/ty/sy/ny/ts/ng*, the *-'t* clitic); dropped openers and long-shouting patterns.
+- slang-glossary.md: quarrel, cheating and sarcasm idioms.
