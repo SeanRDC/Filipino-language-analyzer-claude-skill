@@ -25,3 +25,16 @@ What blind re-run 2 showed (after the fixes above):
 - The targeted fixes worked: *confrontation scenes*, *It's up to you*, *tinatanaw* and *nambabae* all came out right.
 - The totals didn't move beyond noise: two blind runs of the same skill differ by several points, because the agent picks differently among close readings on hard lines. **One clip with one run can't measure small improvements.** It takes several new clips.
 - The reference may itself be wrong in places. At 12:13, all three Whisper runs have *ayaw ko **na** sa'yo*, while the reference (Sean's fix) has *ayaw ko **rin***. That one needs a re-listen.
+
+## Results: Netflix Philippines captioned set (10 clips, about 32 min)
+
+Clips with official human-made Filipino captions, found with `yt-dlp` (human `fil` subtitle tracks only). The audio is in `test files/web/` and the answer keys are in `scratch/heldout/`; both are git-ignored, and the caption text is not committed. Netflix splits sentences across cues, so **word accuracy** is the metric. The captions sometimes drop fillers, which counts against verbatim output.
+
+- Learning set (diffs may be read): cF8NKh6YMTY g0XN6ycP3dc G8jGgYm0wUQ KWaSNX9OROQ lGTudDxwA5w Z44ioxVZbAc
+- Test set (only the summary score is looked at): fCbsQ4vn9q0 sfaJ0Jr8_lg UMtVdFaCgUA wFIJ4cP0QOk
+
+Pooled word accuracy:
+
+| Round | Skill version | Learning set (1152 words) | Test set (1191 words) | Raw GPU run, test set | Raw CPU run, test set |
+|---|---|---|---|---|---|
+| 1 | `7a055e8` | 77.6% | **76.7%** | 47.3% | 56.4% |
