@@ -37,4 +37,10 @@ Pooled word accuracy:
 
 | Round | Skill version | Learning set (1152 words) | Test set (1191 words) | Raw GPU run, test set | Raw CPU run, test set |
 |---|---|---|---|---|---|
-| 1 | `7a055e8` | 77.6% | **76.7%** | 47.3% | 56.4% |
+| 1 | `7a055e8` | 81.8%¹ | **76.7%** | 47.3% | 56.4% |
+| 2 | `27f30d4` | 82.7%² | **76.8%** | 54.2% (loop guard) | 56.4% |
+
+¹ Re-scored after the answer keys' caption markup was unescaped (first reported as 77.6%).
+² Inflated: two of round 2's new rules quote learning-set lines. The test set is the honest number.
+
+Round 2: the loop guard lifted raw GPU Whisper on the test set from 47.3% to 54.2%, but the skill's cleaned output stayed flat at about 77%. Cleanup rules can't recover words the `small` model never heard, so the next lever is the Whisper model itself.
