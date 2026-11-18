@@ -42,3 +42,24 @@ Everyday indirect terms that show up in casual talk and memes. Recognize them; d
 | *may dalaw* | "has a visitor" | having one's period |
 | *regla* / *mens* | (Spanish / English clipping) | menstruation |
 | *nagnanapkin* | *nag-* + *napkin* | uses sanitary napkins |
+
+## Quarrels, Cheating and Sarcasm
+
+Fight scenes (teleseryes, films, vlogs) lean on a small set of idioms. When the story is a breakup, cheating or a family fight, test garbled words against this list first. The sound still decides between them (see the "Sound beats story" gotcha in SKILL.md).
+
+| Term | Literal | Meaning |
+|---|---|---|
+| *sumawsaw* / *nakisawsaw* | dipped (into sauce) | cheated on a partner; also butted into someone else's business |
+| *kating-kati* | itching badly | eager for a new partner (*Ba't ba kating-kati kang palitan ako?*) |
+| *pinasukan* | entered | went into it (a relationship with someone); reviewer-confirmed word, sense from context (*Ah, kaya pinasukan mo?*) |
+| *pinatulan* | responded to (a provocation) | stooped to someone's level, engaged with them; not the same as *pinasukan* |
+| *mang-aagaw* | snatcher | someone who steals another's partner |
+| *kapalit-palit* | replaceable | easy to swap out (*Kapalit-palit ba ako?*) |
+| *chukchakan* | — | slang for sex |
+| *bawat hininga't utot* | every breath and fart | every little thing about someone (*alam ko bawat hininga't utot niya*) |
+| *hugot* / *hugots* | pulled out | deep-seated hurt, an emotional line drawn from it; English speakers keep the word |
+| *Ikaw na!* | you're it | sarcastic "fine, you win / you're perfect"; often opens a list (*Ikaw na 'yung tama, ako na 'yung mali…*) |
+| *Ah, ganon?* / *Eh ano ba?* | oh, like that? / so what? | sarcastic retorts |
+| *Mmm* (+ a statement) | — | sarcastic agreement in an argument (*Mmm, kaya ko rin, 'no?*) |
+| *Eh ikaw!* | well, you! | turning the accusation back; the *eh* is what makes it a retort |
+| *Awat na!* / *Tama na!* | stop the fight / enough | pleas from a third party or the weaker side; usually layered under someone else's shouting |
