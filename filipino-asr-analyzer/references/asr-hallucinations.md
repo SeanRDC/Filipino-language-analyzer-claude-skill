@@ -57,6 +57,27 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 | English plan | *leche flan* | Filipino dish name (Spanish-derived) bent into English words | 2026-11-17-01 |
 | lang yan natin ang | *lagyan natin ng* | *lag-yan* heard as *lang yan*; the marker follows the verb (*lagyan … ng*) | 2026-11-17-01 |
 | atto naman ang window of eagle | *Heto naman ang wind of eagle* | English move name; the `en` pass had it right (*wind*); don't "fix" it to *wing* | 2026-11-17-02 |
+| *(no cue, 00:22–00:30)* / Dalawa, tatgo | *…Isa lang! Ke, isa, dalawa, tatlo…* | four lines skipped right after the narrator in all three full runs; a 15 s window run recovered them | 2026-11-17-04 |
+| Sumau sa ako ka pa rin sa iba | *Sumawsaw ka pa rin sa iba!* | idiom for cheating; the `--slow 0.75` window gave *Sumausaw* | 2026-11-17-04 |
+| siya na jamong alamin | *sinadya mong alamin* | *dya* is said "ja" | 2026-11-17-04 |
+| sa canko | *sa tiyan ko* | *tiya* is said "cha"; the `en` pass made it *Chiang* | 2026-11-17-04 |
+| San siyang kayo / Sanyang kayo | *nandiyan kayo* | *diya* is said "ja"; it pairs with the *nandito na ako* just before | 2026-11-17-04 |
+| Dalamang taon | *Dalawang taon* | *w* heard as *m*; the cleanup wrongly picked *ilang* | 2026-11-17-04 |
+| bawat hindi nga tutut niya | *bawat hininga't utot niya* | idiom "every breath and fart" (knows everything about him); the raw syllables were nearly all there | 2026-11-17-04 |
+| ikaw rin ang bumukok. Kung anong anang naging siya | *ikaw rin ang bumuo kung ano ang naging siya* | completed aspect, which the cleanup wrongly changed to *bubuo … magiging* | 2026-11-17-04 |
+| Nakalakong mga katulong / Naya kaila ko ba? | *Akala ko makakatulong / Eh, akala ko ba…* | *akala ko* gets a stray *n-* and loses its vowels | 2026-11-17-04 |
+| ako na yung mga aga | *ako na 'yung mang-aagaw* | the prefix *mang-* heard as *mga*, and *aagaw* collapsed | 2026-11-17-04 |
+| Okay, ito na! … Sige, ako na naman yung tama | *Okay, ikaw na! Ikaw na naman 'yung tama…* | sarcastic *ikaw na*; the slow window run had it | 2026-11-17-04 |
+| Ma, bakat inkating ang palitang ako? | *Ba't ba kating-kati kang palitan ako?* | *kating* was in both runs; the cleanup threw it away for *bilis* | 2026-11-17-04 |
+| Parang awam na sa sumang utka naman | *Parang awa mo na, sumagot ka naman!* | *sumagot ka* split as *sumang utka*; wrongly cleaned to *umuwi ka* | 2026-11-17-04 |
+| Pag-tangin na naman, Bash / Kaila nilangtabok at igas | *Putangina naman, Bash! Ganyan ka ba katigas?* | shouted curse and question; only window re-runs caught them | 2026-11-17-04 |
+| Anakilangan katawan mo | *Malaki lang ang katawan mo* | *ma-* dropped at the line start; *laki lang* fused | 2026-11-17-04 |
+| Ako ba hinintindi mo | *Ako ba, inintindi mo…?* | raw was right; the cleanup wrongly flipped it to *Ikaw ba* | 2026-11-17-04 |
+| Kayo, may gusto na rin di ako | *Kayo ang may gusto at hindi ako!* | raw word order kept the meaning; `en`: *"You are the one I want"* | 2026-11-17-04 |
+| Hindi talin ako lang sayo | *Hindi talino kulang sa'yo* | *talino* and *kulang* both there in the raw | 2026-11-17-04 |
+| Aga noon! | *Ah, ganon?* | sarcastic reaction; *ganoon* lost its *g* | 2026-11-17-04 |
+| Mas / Mat / Ma | *Bash* (nickname of *Basha*) | character nickname from the identified film | 2026-11-17-04 |
+| their past, who gots | *their past hugots* | Tagalog loanword in English narration; the cleanup translated it to "hurts" | 2026-11-17-04 |
 
 ## Shouted Commands and Interjections
 
@@ -68,7 +89,25 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 - **Clip edges are cut.** Memes, duets and screen recordings often start or end mid-word. A leading fragment (*uto* ← *[lu]to*/*[i]to*) or a trailing extra syllable (*kutsahar* ← *kutsara*) is an edit artifact. Mark it as cut (*"…to sa ating…"*) instead of inventing a whole word from it.
 - **Short cues may be out of order.** When interjections are under one second long and talk overlaps, Whisper's timestamps can swap their order. Do not treat the cue order as certain.
 
+## How Tagalog Sounds vs. How It Is Spelled
+
+Whisper writes what it hears, so decode the raw with the spoken values in mind. Tagalog has five vowels (*a e i o u*, with *e/i* and *o/u* blurred) and a few consonant clusters that are not said the way they are spelled:
+
+| Spelled | Said | Whisper may write | Example |
+|---|---|---|---|
+| *dy*, *diy* | "j" | *j*, *dj* | *sinadya* → *siya na ja*; *nandiyan* → *nanjan*, *sanyang*; *diyan* → *jan* |
+| *ty*, *tiy* | "ch" | *ch*, *c*, *ts* | *tiyan ko* → *canko*; *tiyak* → *chak* |
+| *sy*, *siy* | "sh" | *sh*, *sy* | *siya* → *sha*; *pasyal* → *pashal* |
+| *ny* | "ñ" | *ni*, *ny* | *ganyan* → *ganian*; *kanya* → *kania* |
+| *ts* | "ch" | *ch* | *tsinelas* → *chinelas* |
+| *ng* | velar nasal "ŋ" | *n*, *g*, dropped | *pangit* → *pakit*; *mang-* → *mga* |
+| *ng* (linker) + vowel | runs into the next word | split mid-word | *sumagot ka* → *sumang utka* |
+| *-'t* (contracted *at*) | glued to the word before | lost | *hininga't utot* → *hindi nga tutut* |
+
 ## Structural Patterns
+
+- **Dropped openers and fast particles.** In heated or fast speech, Whisper drops unstressed one-syllable line openers (*O*, *Eh*, *Ah*, *Ke*, *O ano*) and mid-line particles (*nga*, *na*, *lang*, *mas*, *pa rin*, *eh*). The result is still grammatical, so nothing looks wrong. In session 2026-11-17-04, eleven reviewed lines had lost one. Re-run the stretch as a short window, slowed (`--slow 0.75`), and listen for them before calling a line complete.
+- **Long shouting reduced to a short cue.** When several people shout at once, Whisper can turn ten seconds of dialogue into one stock interjection (*Ay, tama na!*) or a loop (*Ang dalit!* ×5). A cue whose duration is far longer than its words is missing speech. Re-run that window by itself.
 
 - **Collapsed reduplication (future and progressive aspect):** Tagalog repeats the first syllable of the root for the future (*hu-hulihin*, *ba-barilin*, and on English words too: *i-da-drug test*), the ongoing tense after *nag-/mag-/um-* (*nag-do-droga*, *nag-a-update*, *ka-kain*), and causatives with *pa-* (*pag-pa-pa-init*, *magpapainit*). ASR often merges the repeated syllable into one, sometimes with a changed consonant (*Bulihin* ← *Huhulihin*, *nag-drog* ← *nagdodroga*). If a verb root looks oddly short or starts with a strange consonant, try putting the reduplicated syllable back.
 - **Address terms:** *kuya*, *ate*, *boss*, *sir*, *pare* often open or close a question (*"Kuya, … ka ba, kuya?"*). Whisper turns *kuya* into *kaya*. A *kaya* at the start or end of a question is usually *kuya*. The term is also clipped to *'ya* (*kuya*) or *'te* (*ate*) and fused with the word before it (*"'to, 'ya?"* → *tayo*).
