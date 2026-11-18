@@ -78,6 +78,13 @@ These are real mishearings. A native speaker confirmed what was actually said. I
 | Aga noon! | *Ah, ganon?* | sarcastic reaction; *ganoon* lost its *g* | 2026-11-17-04 |
 | Mas / Mat / Ma | *Bash* (nickname of *Basha*) | character nickname from the identified film | 2026-11-17-04 |
 | their past, who gots | *their past hugots* | Tagalog loanword in English narration; the cleanup translated it to "hurts" | 2026-11-17-04 |
+| about sa online class *(both runs)* | *about sa online class* | raw was right; the cleanup dropped *sa* to match the `en` pass | 2026-11-18-01 |
+| Gwang hain no / Kung hain mo | *Oo nga, eh, 'no* | agreement reply fused into one word; `en`: *"If you eat it"* | 2026-11-18-01 |
+| Alan Calbo / Aaleng kalbo | *Alen kalbo!* | the cleanup snapped it to the address term *aleng* | 2026-11-18-01 |
+| Hindi ako muntang | *Hindi ako 'yon, tangina…* | curse hidden in *muntang*; the cleanup wrote *ma'am*. The teacher's reply *Mura pa* confirms the curse | 2026-11-18-01 |
+| Lala pan tayo | *Lalaban tayo! / Oo!* | crowd reply dropped; the `en` pass kept it (*"Yes!"*) | 2026-11-18-02 |
+| Sayonan dito | *So ayon, dito* | opener *So ayon* fused into the next word | 2026-11-18-02 |
+| Tanginala! / Tanggilalaw! (×2) | *Tangina naman! … Ampota!* | two different curses, not one curse repeated | 2026-11-18-02 |
 
 ## Shouted Commands and Interjections
 
