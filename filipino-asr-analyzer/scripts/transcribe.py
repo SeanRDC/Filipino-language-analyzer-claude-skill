@@ -276,9 +276,12 @@ def main() -> None:
 
     p = argparse.ArgumentParser(description="Raw Tagalog/Taglish transcription (faster-whisper on CPU/CUDA, OpenVINO on Intel GPU/NPU).")
     p.add_argument("source", help="local audio/video file or URL")
-    p.add_argument("--model", default="small",
-                   help="Whisper model: tiny, base, small, medium, large-v3 (default: small). "
+    p.add_argument("--model", default="auto",
+                   help="Whisper model: auto (default), tiny, base, small, medium, large-v3-turbo, "
+                        "large-v3. auto = large-v3-turbo on a GPU, small on CPU-only machines. "
                         "Do not use *.en models; they are English-only.")
+    p.add_argument("--fallback-model", default="small",
+                   help="model for the CPU loop guard on gpu/npu (default: small, light on the CPU)")
     p.add_argument("--language", default="tl",
                    help="language code (default: tl). Use 'auto' to let Whisper detect it.")
     p.add_argument("--out", type=Path, help="also write the transcript to this file")
@@ -322,6 +325,11 @@ def main() -> None:
 
     lower_priority(args.priority)
     device = pick_device(args.device)
+    if args.model == "auto":
+        # Blind test 2026-11-19 (10 captioned drama clips, raw word accuracy on the held-out set):
+        # small 54%, medium 66%, large-v3-turbo 75%, at ~10-25 s per clip on an Intel Arc iGPU.
+        # On a CPU, turbo is slow and loud, so weak or GPU-less machines stay on small.
+        args.model = "small" if device == "cpu" else "large-v3-turbo"
 
     with tempfile.TemporaryDirectory() as tmp:
         if args.source.startswith(("http://", "https://")):
@@ -344,8 +352,9 @@ def main() -> None:
 
                 def fallback():
                     if not cpu:
-                        print("Loop detected: re-decoding on cpu (beam 5)...", file=sys.stderr)
-                        cpu.append(faster_whisper_decoder(args.model, "cpu", language, args.threads,
+                        print(f"Loop detected: re-decoding on cpu ({args.fallback_model}, beam 5)...",
+                              file=sys.stderr)
+                        cpu.append(faster_whisper_decoder(args.fallback_model, "cpu", language, args.threads,
                                                           args.vad, args.skip_quiet))
                     return cpu[0]
                 decoder_note += ", looping windows re-decoded on cpu"
