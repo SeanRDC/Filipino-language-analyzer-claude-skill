@@ -79,7 +79,7 @@ python scripts/transcribe.py <file-or-url> --out <transcript.txt>
     *   the pronouns flip (*ako*↔*ikaw*);
     *   one speaker pleads (*Tama na! Awat na!*) under another's shouting.
 
-    Label the turns *A:* / *B:* (or with names, once known). For each overlap, give both lines with their own confidence tags.
+    Label the turns *A:* / *B:* (or with names, once known). For each overlap, give both lines with their own confidence tags. When the output is a one-line-per-row table with no speaker column, keep overlapping turns in one cell, split with ` / ` (*A: Sinungaling ka pa! / B: Tama na!*), and give the row the lower of the two tags. Never drop the quieter turn because the format has no room for it.
 
 ### 1. Reconstruct the Transcript (ASR Cleanup)
 Work through the evidence in this order. The patterns behind each step, with verified examples, are in [references/asr-hallucinations.md](references/asr-hallucinations.md).
