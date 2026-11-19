@@ -8,6 +8,7 @@ Usage:
     python transcribe.py <file-or-url> [--model small] [--language tl] [--out transcript.txt]
     python transcribe.py <file> --start 1:20 --end 1:50 --slow 0.75   # zoom on a hard stretch
     python transcribe.py <file> --device cpu --window 30              # second opinion on the CPU
+    python transcribe.py <file> --windows 0:50-1:15,6:15-6:40 --speeds 1,0.75  # many windows, one model load
 
 Devices (--device auto picks the first available):
     cuda  NVIDIA GPU, faster-whisper, beam search
@@ -60,6 +61,27 @@ def parse_time(value: str) -> float:
     for part in value.split(":"):
         secs = secs * 60 + float(part)
     return secs
+
+
+def parse_ranges(value: str) -> list[tuple[float, float]]:
+    """'0:50-1:15,6:15-6:40' -> [(50.0, 75.0), (375.0, 400.0)]."""
+    ranges = []
+    for item in value.split(","):
+        start, sep, end = item.strip().partition("-")
+        if not sep:
+            raise argparse.ArgumentTypeError(f"window '{item}' needs start-end, e.g. 0:50-1:15")
+        a, b = parse_time(start), parse_time(end)
+        if b <= a:
+            raise argparse.ArgumentTypeError(f"window '{item}' ends before it starts")
+        ranges.append((a, b))
+    return ranges
+
+
+def parse_speeds(value: str) -> list[float]:
+    speeds = [float(v) for v in value.split(",")]
+    if not all(0.5 <= v <= 1.0 for v in speeds):
+        raise argparse.ArgumentTypeError("speeds must be between 0.5 and 1.0")
+    return speeds
 
 
 def load_audio(media: Path, start: float | None = None, end: float | None = None,
@@ -325,6 +347,11 @@ def main() -> None:
     p.add_argument("--slow", type=float, default=1.0,
                    help="play the audio at this speed before transcribing, 0.5-1.0 (e.g. 0.75). Helps "
                         "with rapid-fire lines; timestamps are mapped back to the original timing")
+    p.add_argument("--windows", type=parse_ranges,
+                   help="several windows in one call, e.g. '0:50-1:15,6:15-6:40'. The model loads "
+                        "once, so this is much faster than one call per window")
+    p.add_argument("--speeds", type=parse_speeds,
+                   help="run every window at each of these speeds, e.g. '1,0.75' (default: --slow)")
     p.add_argument("--gap", type=float, default=2.0,
                    help="report silences between cues longer than this many seconds (default 2; 0 = off)")
     p.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "gpu", "npu"],
@@ -344,6 +371,8 @@ def main() -> None:
 
     if not 0.5 <= args.slow <= 1.0:
         sys.exit("error: --slow must be between 0.5 and 1.0")
+    if args.windows and (args.start is not None or args.end is not None):
+        sys.exit("error: use either --windows or --start/--end, not both")
 
     if args.model.endswith(".en"):
         sys.exit("error: English-only models (*.en) cannot transcribe Tagalog; use e.g. --model small")
@@ -390,80 +419,93 @@ def main() -> None:
             decoder_note = (f"faster-whisper {device}, beam 5"
                             + (f", {args.threads} threads" if device == "cpu" else ""))
 
-        audio = load_audio(media, args.start, args.end, args.slow)
-        if isinstance(audio, str):
-            sys.exit("error: ffmpeg is required on PATH")
-        offset = args.start or 0.0
-        total = len(audio) / SR
+        out: list[str] = []
 
-        def real(t: float) -> float:  # map a time in the (cut, slowed) audio back to the source
-            return offset + t * args.slow
+        def run_range(start_at, end_at, slow):
+            audio = load_audio(media, start_at, end_at, slow)
+            if isinstance(audio, str):
+                sys.exit("error: ffmpeg is required on PATH")
+            offset = start_at or 0.0
+            total = len(audio) / SR
 
-        redone = []
-        segments = (transcribe_windows(decode, audio, window, fallback=fallback, report=redone)
-                    if window else decode(audio))
+            def real(t: float) -> float:  # map a time in the (cut, slowed) audio back to the source
+                return offset + t * slow
 
-        lines = [
-            f"# source: {args.source}",
-            f"# model: {args.model} | language: {args.language} | decoder: {decoder_note}"
-            + (f" | windows: {window:g}s" if window else "")
-            + f" | duration: {fmt_time(total * args.slow)}",
-        ]
-        if args.start is not None or args.end is not None or args.slow != 1.0:
-            lines.append(f"# window: {fmt_time(offset)} -> "
-                         f"{fmt_time(args.end) if args.end is not None else 'end'} | slow: {args.slow}")
-        lines.append("")
-        for line in lines:
-            print(line, flush=True)
-        # Session 2026-11-17-04: all three runs skipped 00:22-00:30 (dialogue right after the
-        # narrator) and the start of the next line. Report every gap so it gets re-run alone.
-        gaps = []
-        odd = []
-        cues = []
-        prev_end = offset
-        for seg_start, seg_end, text in segments:  # may be a generator: decoding happens here
-            start, end = real(seg_start), real(seg_end)
-            cues.append((start, end, text))
-            if args.gap and start - prev_end >= args.gap:
-                gaps.append((prev_end, start))
-            prev_end = max(prev_end, end)
-            if NON_LATIN.search(text):
-                odd.append((start, text))
-            line = text if args.no_timestamps else f"[{fmt_time(start)} -> {fmt_time(end)}] {text}"
-            lines.append(line)
-            print(line, flush=True)
-        if args.gap and real(total) - prev_end >= args.gap:  # speech lost at the very end
-            gaps.append((prev_end, real(total)))
-        if gaps:
-            lines += ["", f"# gaps of {args.gap:g}s+ with no cue: check each (silencedetect) or re-run "
-                          "it alone with --start/--end"]
-            lines += [f"# gap {fmt_time(a)} -> {fmt_time(b)} ({b - a:.0f}s)" for a, b in gaps]
-            for line in lines[-len(gaps) - 1:]:
-                print(line, file=sys.stderr)
+            redone = []
+            segments = (transcribe_windows(decode, audio, window, fallback=fallback, report=redone)
+                        if window else decode(audio))
 
-        notes = []
-        if redone:  # blind test 2026-11-18: greedy GPU decoding looped in 9 of 10 drama clips
-            notes.append("# loop guard: windows re-decoded on cpu at "
-                         + ", ".join(fmt_time(real(t)) for t in redone))
-        if odd:  # the CPU decoder sometimes emits Greek/Cyrillic letters in Tagalog
-            notes.append("# non-Latin script in a cue (likely hallucination): "
-                         + ", ".join(fmt_time(t) for t, _ in odd))
-        hollow, wordless = hidden_gaps(cues)
-        if hollow:
-            notes.append("# hollow cues (long cue, few words: speech may be hidden; re-run as a "
-                         "window): " + ", ".join(f"{fmt_time(a)} -> {fmt_time(b)} ({n} words in "
-                                                 f"{b - a:.0f}s)" for a, b, n in hollow))
-        if wordless:
-            notes.append("# wordless cues ('...' or symbols only: treat as gaps): "
-                         + ", ".join(f"{fmt_time(a)} -> {fmt_time(b)}" for a, b in wordless))
-        if notes:
-            lines += [""] + notes
-            for line in notes:
-                print(line, file=sys.stderr)
+            lines = [] if out else [
+                f"# source: {args.source}",
+                f"# model: {args.model} | language: {args.language} | decoder: {decoder_note}"
+                + (f" | windows: {window:g}s" if window else "")
+                + f" | duration: {fmt_time(total * slow)}",
+            ]
+            if start_at is not None or end_at is not None or slow != 1.0:
+                lines.append(f"# window: {fmt_time(offset)} -> "
+                             f"{fmt_time(end_at) if end_at is not None else 'end'} | slow: {slow}")
+            lines.append("")
+            for line in lines:
+                print(line, flush=True)
+            # Session 2026-11-17-04: all three runs skipped 00:22-00:30 (dialogue right after the
+            # narrator) and the start of the next line. Report every gap so it gets re-run alone.
+            gaps = []
+            odd = []
+            cues = []
+            prev_end = offset
+            for seg_start, seg_end, text in segments:  # may be a generator: decoding happens here
+                start, end = real(seg_start), real(seg_end)
+                cues.append((start, end, text))
+                if args.gap and start - prev_end >= args.gap:
+                    gaps.append((prev_end, start))
+                prev_end = max(prev_end, end)
+                if NON_LATIN.search(text):
+                    odd.append((start, text))
+                line = text if args.no_timestamps else f"[{fmt_time(start)} -> {fmt_time(end)}] {text}"
+                lines.append(line)
+                print(line, flush=True)
+            if args.gap and real(total) - prev_end >= args.gap:  # speech lost at the very end
+                gaps.append((prev_end, real(total)))
+            if gaps:
+                lines += ["", f"# gaps of {args.gap:g}s+ with no cue: check each (silencedetect) or re-run "
+                              "it alone with --start/--end (several at once: --windows)"]
+                lines += [f"# gap {fmt_time(a)} -> {fmt_time(b)} ({b - a:.0f}s)" for a, b in gaps]
+                for line in lines[-len(gaps) - 1:]:
+                    print(line, file=sys.stderr)
+
+            notes = []
+            if redone:  # blind test 2026-11-18: greedy GPU decoding looped in 9 of 10 drama clips
+                notes.append("# loop guard: windows re-decoded on cpu at "
+                             + ", ".join(fmt_time(real(t)) for t in redone))
+            if odd:  # the CPU decoder sometimes emits Greek/Cyrillic letters in Tagalog
+                notes.append("# non-Latin script in a cue (likely hallucination): "
+                             + ", ".join(fmt_time(t) for t, _ in odd))
+            hollow, wordless = hidden_gaps(cues)
+            if hollow:
+                notes.append("# hollow cues (long cue, few words: speech may be hidden; re-run as a "
+                             "window): " + ", ".join(f"{fmt_time(a)} -> {fmt_time(b)} ({n} words in "
+                                                     f"{b - a:.0f}s)" for a, b, n in hollow))
+            if wordless:
+                notes.append("# wordless cues ('...' or symbols only: treat as gaps): "
+                             + ", ".join(f"{fmt_time(a)} -> {fmt_time(b)}" for a, b in wordless))
+            if notes:
+                lines += [""] + notes
+                for line in notes:
+                    print(line, file=sys.stderr)
+
+            if out:
+                out.append("")
+            out.extend(lines)
+
+        # --windows: many ranges in one call, so the model loads once (round 3 spent most of
+        # 20 minutes reloading turbo for 113 separate window runs).
+        for start_at, end_at in (args.windows or [(args.start, args.end)]):
+            for slow in (args.speeds or [args.slow]):
+                run_range(start_at, end_at, slow)
 
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        args.out.write_text("\n".join(out) + "\n", encoding="utf-8")
         print(f"Saved: {args.out}", file=sys.stderr)
 
 
