@@ -237,21 +237,50 @@ def openvino_decoder(model_name: str, device: str, language):
     return decode
 
 
+def _cue_key(text: str) -> str:
+    return re.sub(r"\W+", " ", text).strip().lower()
+
+
 def looks_looping(cues) -> bool:
     """True when a window's cues look like a decoding loop rather than speech.
 
     Greedy GPU decoding loops over music beds and shouting ("I'm sorry" x14 over an action
-    scene, blind test 2026-11-18): one text repeated three or more times and making up at
-    least half the cues, or cue times that run backwards.
+    scene, blind test 2026-11-18). A window loops when:
+    - one text is repeated three or more times and makes up at least half the cues;
+    - a block of lines repeats: three or more cues of 3+ words copy an earlier cue, and the
+      copies are at least a third of the cues (A B C A A B C C, round 4, 2026-11-19; this
+      flagged 1 of 409 30 s chunks of the round 3-4 output, and that one was the loop);
+    - cue times run backwards.
     """
     if any(b < a for a, b, _ in cues):
         return True
-    texts = [re.sub(r"\W+", " ", t).strip().lower() for _, _, t in cues]
-    texts = [t for t in texts if t]
+    texts = [k for k in (_cue_key(t) for _, _, t in cues) if k]
     if len(texts) < 3:
         return False
     top = max(texts.count(t) for t in set(texts))
-    return top >= 3 and top * 2 >= len(texts)
+    if top >= 3 and top * 2 >= len(texts):
+        return True
+    seen, copies = set(), 0
+    for t in texts:
+        if len(t.split()) >= 3 and t in seen:
+            copies += 1
+        seen.add(t)
+    return copies >= 3 and copies * 3 >= len(texts)
+
+
+def loop_start(cues) -> float:
+    """Time (relative to the window) where a looping window starts to repeat itself.
+
+    Lines before the first repeat or backwards cue are usually real speech, so the loop
+    guard keeps them and re-decodes only from here on.
+    """
+    seen = set()
+    for i, (a, b, text) in enumerate(cues):
+        key = _cue_key(text)
+        if b < a or (i and a < cues[i - 1][0]) or (key and key in seen):
+            return cues[i - 1][1] if i else 0.0
+        seen.add(key)
+    return 0.0
 
 
 def hidden_gaps(cues, min_len: float = 8.0, max_rate: float = 0.75):
@@ -288,8 +317,9 @@ def transcribe_windows(decode, audio, window: float, overlap: float = 5.0, fallb
 
     Whisper sees every stretch away from a window edge, so lines cut by an edge in one
     window are whole in the next. Cue times are relative to the start of `audio`.
-    `fallback()` returns a second decoder; a window whose cues loop is decoded again with it,
-    and its start time is appended to `report`.
+    `fallback()` returns a second decoder. When a window's cues loop, the cues before the loop
+    are kept, the rest of the window is taken from the fallback decoder, and that re-decoded
+    (start, end) range is appended to `report`.
     """
     total = len(audio) / SR
     step = max(window - overlap, 1.0)
@@ -307,9 +337,12 @@ def transcribe_windows(decode, audio, window: float, overlap: float = 5.0, fallb
         chunk = audio[int(s * SR):int(e * SR)]
         cues = list(decode(chunk))
         if fallback is not None and looks_looping(cues):
-            cues = list(fallback()(chunk))
+            cut = loop_start(cues)
+            kept = [c for c in cues if c[0] < cut and c[1] <= cut]
+            redone = [c for c in fallback()(chunk) if (c[0] + c[1]) / 2 >= cut]
+            cues = kept + redone
             if report is not None:
-                report.append(s)
+                report.append((s + max(cut, keep_from - s), min(e, keep_to)))
         for a, b, text in cues:
             mid = s + (a + b) / 2
             if keep_from <= mid < keep_to:
@@ -475,8 +508,12 @@ def main() -> None:
 
             notes = []
             if redone:  # blind test 2026-11-18: greedy GPU decoding looped in 9 of 10 drama clips
-                notes.append("# loop guard: windows re-decoded on cpu at "
-                             + ", ".join(fmt_time(real(t)) for t in redone))
+                # Round 4: the small re-decode invented fluent English over music, so say whose
+                # lines these are; they are the CPU model's evidence, not this model's.
+                notes.append(f"# loop guard: re-decoded on cpu ({args.fallback_model}) from the loop "
+                             "on; weak over music: "
+                             + ", ".join(f"{fmt_time(real(a))} -> {fmt_time(real(b))}"
+                                         for a, b in redone))
             if odd:  # the CPU decoder sometimes emits Greek/Cyrillic letters in Tagalog
                 notes.append("# non-Latin script in a cue (likely hallucination): "
                              + ", ".join(fmt_time(t) for t, _ in odd))
