@@ -39,8 +39,15 @@ Pooled word accuracy:
 |---|---|---|---|---|---|
 | 1 | `7a055e8` | 81.8%¹ | **76.7%** | 47.3% | 56.4% |
 | 2 | `27f30d4` | 82.7%² | **76.8%** | 54.2% (loop guard) | 56.4% |
+| 3 | `0a0f22a` | 87.8%² | **82.9%** | 75.0% (`large-v3-turbo`) | 56.4% (reused) |
 
 ¹ Re-scored after the answer keys' caption markup was unescaped (first reported as 77.6%).
 ² Inflated: two of round 2's new rules quote learning-set lines. The test set is the honest number.
 
 Round 2: the loop guard lifted raw GPU Whisper on the test set from 47.3% to 54.2%, but the skill's cleaned output stayed flat at about 77%. Cleanup rules can't recover words the `small` model never heard, so the next lever is the Whisper model itself.
+
+Round 3: the skill was unchanged except for the default model, which is now `large-v3-turbo` on the GPU. The test set rose from 76.8% to 82.9%. That is +6.1 points over round 2, and +7.9 over raw turbo alone. Per clip on the test set: 78.0%, 95.9%, 82.2% and 83.1%. The weakest are the fast comic retelling and the music-heavy clip. The 22 minutes of transcription went mostly on reloading the model for each of 113 window runs, against 166 s for the 10 full runs. The blind agent's notes:
+- **Turbo doesn't loop like `small`.** The loop guard fired in one full run and in 9 of the 113 windows, all over music or screaming. The end-of-clip *Thank you for watching!* lines are gone.
+- **New failure: over-long cues.** One cue stretches 20–25 s across music and swallows the real speech, so the gap list misses it. In one clip turbo also wrote `...` ×12 over a news insert and dropped a narrated line.
+- **Agreement within one model.** The full run, its windows and its slow windows all come from turbo, so their agreement is weaker evidence than agreement between different models.
+- **Still not fully blind.** SKILL.md quotes lines from these clips as worked examples. The agent says it used them only where the raw sound already supported them.
