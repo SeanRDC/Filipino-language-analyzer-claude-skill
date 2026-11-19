@@ -35,7 +35,7 @@ Clips with official human-made Filipino captions, found with `yt-dlp` (human `fi
 
 Pooled word accuracy:
 
-| Round | Skill version | Learning set (1152 words) | Test set (1191 words) | Raw GPU run, test set | Raw CPU run, test set |
+| Round | Skill version | Learning set (1104 words) | Test set (1191 words) | Raw GPU run, test set | Raw CPU run, test set |
 |---|---|---|---|---|---|
 | 1 | `7a055e8` | 81.8%¹ | **76.7%** | 47.3% | 56.4% |
 | 2 | `27f30d4` | 82.7%² | **76.8%** | 54.2% (loop guard) | 56.4% |
