@@ -40,6 +40,7 @@ Pooled word accuracy:
 | 1 | `7a055e8` | 81.8%¹ | **76.7%** | 47.3% | 56.4% |
 | 2 | `27f30d4` | 82.7%² | **76.8%** | 54.2% (loop guard) | 56.4% |
 | 3 | `0a0f22a` | 87.8%² | **82.9%** | 75.0% (`large-v3-turbo`) | 56.4% (reused) |
+| 4 | `fd9c25f` | 86.5%² | **84.0%** | 75.0% (`large-v3-turbo`) | 56.4% (reused) |
 
 ¹ Re-scored after the answer keys' caption markup was unescaped (first reported as 77.6%).
 ² Inflated: two of round 2's new rules quote learning-set lines. The test set is the honest number.
@@ -51,3 +52,9 @@ Round 3: the skill was unchanged except for the default model, which is now `lar
 - **New failure: over-long cues.** One cue stretches 20–25 s across music and swallows the real speech, so the gap list misses it. In one clip turbo also wrote `...` ×12 over a news insert and dropped a narrated line.
 - **Agreement within one model.** The full run, its windows and its slow windows all come from turbo, so their agreement is weaker evidence than agreement between different models.
 - **Still not fully blind.** SKILL.md quotes lines from these clips as worked examples. The agent says it used them only where the raw sound already supported them.
+
+Round 4: this round tested the 10 changes made after round 3. The script now lists hollow and wordless cues and batches windows into one call (`--windows`). SKILL.md got rules for hidden gaps, counting runs by model, slow-only readings, non-speech tags and overlapping turns.
+- **Accuracy:** the test set rose from 82.9% to 84.0% (204 → 191 errors). Three of the four test clips improved by 1–2 points. The learning set fell from 87.8% to 86.5%. Both moves are within the spread of two blind runs of one skill, so read this as "no worse, maybe slightly better".
+- **Speed:** clear gain. Window runs took 428 s instead of 1166 s, with one `--windows` call per clip in place of 113 separate calls. The whole transcription took 10 minutes instead of 22.
+- **Hidden gaps:** the wordless `...` stretch over a TV insert held a whole spoken accusation, and the window recovered it. Re-running a hollow cue often came back hollow again.
+- **Open:** the loop guard missed a three-line block repeated in a window, because it only checks for one line repeating. Its CPU re-decode with `small` also invented lines over music.
