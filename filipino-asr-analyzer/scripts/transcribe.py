@@ -232,6 +232,31 @@ def looks_looping(cues) -> bool:
     return top >= 3 and top * 2 >= len(texts)
 
 
+def hidden_gaps(cues, min_len: float = 8.0, max_rate: float = 0.75):
+    """Find stretches where speech may be hidden even though a cue covers them.
+
+    large-v3-turbo can stretch one short line over 10-25 s of music and swallow the real
+    speech around it, or write "..." cue after cue over a TV insert (blind test round 3,
+    2026-11-19). The gap list misses both because every second has a cue. Normal speech here
+    runs 2-3 words per second.
+
+    Returns (hollow, wordless): hollow = [(start, end, words)] for cues of min_len seconds or
+    more with fewer than max_rate words per second; wordless = merged (start, end) runs of
+    cues that hold no words at all.
+    """
+    hollow, wordless = [], []
+    for start, end, text in cues:
+        words = len(re.findall(r"[^\W\d_]+", text))
+        if not words:
+            if wordless and start - wordless[-1][1] <= 1.0:
+                wordless[-1] = (wordless[-1][0], max(wordless[-1][1], end))
+            else:
+                wordless.append((start, end))
+        elif end - start >= min_len and words / (end - start) < max_rate:
+            hollow.append((start, end, words))
+    return hollow, wordless
+
+
 NON_LATIN = re.compile(r"[Ͱ-ϿЀ-ӿ֐-ۿ฀-๿぀-ヿ一-鿿가-힯]")
 
 
@@ -394,9 +419,11 @@ def main() -> None:
         # narrator) and the start of the next line. Report every gap so it gets re-run alone.
         gaps = []
         odd = []
+        cues = []
         prev_end = offset
         for seg_start, seg_end, text in segments:  # may be a generator: decoding happens here
             start, end = real(seg_start), real(seg_end)
+            cues.append((start, end, text))
             if args.gap and start - prev_end >= args.gap:
                 gaps.append((prev_end, start))
             prev_end = max(prev_end, end)
@@ -421,6 +448,14 @@ def main() -> None:
         if odd:  # the CPU decoder sometimes emits Greek/Cyrillic letters in Tagalog
             notes.append("# non-Latin script in a cue (likely hallucination): "
                          + ", ".join(fmt_time(t) for t, _ in odd))
+        hollow, wordless = hidden_gaps(cues)
+        if hollow:
+            notes.append("# hollow cues (long cue, few words: speech may be hidden; re-run as a "
+                         "window): " + ", ".join(f"{fmt_time(a)} -> {fmt_time(b)} ({n} words in "
+                                                 f"{b - a:.0f}s)" for a, b, n in hollow))
+        if wordless:
+            notes.append("# wordless cues ('...' or symbols only: treat as gaps): "
+                         + ", ".join(f"{fmt_time(a)} -> {fmt_time(b)}" for a, b in wordless))
         if notes:
             lines += [""] + notes
             for line in notes:
