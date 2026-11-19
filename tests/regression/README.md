@@ -41,6 +41,7 @@ Pooled word accuracy:
 | 2 | `27f30d4` | 82.7%² | **76.8%** | 54.2% (loop guard) | 56.4% |
 | 3 | `0a0f22a` | 87.8%² | **82.9%** | 75.0% (`large-v3-turbo`) | 56.4% (reused) |
 | 4 | `fd9c25f` | 86.5%² | **84.0%** | 75.0% (`large-v3-turbo`) | 56.4% (reused) |
+| 5 | `653d961` | 87.5%² | **83.2%** | 75.0% (`large-v3-turbo`) | 56.4% (reused) |
 
 ¹ Re-scored after the answer keys' caption markup was unescaped (first reported as 77.6%).
 ² Inflated: two of round 2's new rules quote learning-set lines. The test set is the honest number.
@@ -58,3 +59,9 @@ Round 4: this round tested the 10 changes made after round 3. The script now lis
 - **Speed:** clear gain. Window runs took 428 s instead of 1166 s, with one `--windows` call per clip in place of 113 separate calls. The whole transcription took 10 minutes instead of 22.
 - **Hidden gaps:** the wordless `...` stretch over a TV insert held a whole spoken accusation, and the window recovered it. Re-running a hollow cue often came back hollow again.
 - **Open:** the loop guard missed a three-line block repeated in a window, because it only checks for one line repeating. Its CPU re-decode with `small` also invented lines over music.
+
+Round 5: this round tested the loop-guard fix (repeated blocks of lines are caught, and lines before a loop are kept) and four rules: verbs after modals, when to add a non-speech row, the first spelling of a name, and when to merge overlapping turns.
+- **Accuracy:** the test set scored 83.2% and the learning set 87.5%. Rounds 3–5 sit at 82.9%, 84.0% and 83.2% on the test set, the spread of one skill run three times. Rules alone have levelled off at about 83–84% on this set. The remaining errors are mostly words turbo never heard (the fast comic retelling, speech under music), not cleanup mistakes.
+- **Speed:** window runs took 303 s for 156 window decodes, against 428 s in round 4 and 1166 s in round 3.
+- **Loop guard:** it fired in 1 of 10 full runs and in 9 of 156 window decodes. No repeated block got past it.
+- **Hollow cues:** in every case the real line sat near the end of the hollow stretch. The skill now times these lines from the window.
